@@ -4,7 +4,7 @@ import type { PaginationMeta, PaginationOptions, PaginationOrError } from '@util
 import type { UsePaginationResult } from './types';
 
 const usePagination = <T,>(fetchFn: (page: number, limit: number) => PaginationOrError<T>, { page: initialPage = 1, limit: initialLimit = 10 }: PaginationOptions = {}): UsePaginationResult<T> => {
-    const [meta, setMeta] = useState<PaginationMeta>({ total: 0,  page: initialPage, pages: 0, limit: initialLimit });
+    const [meta, setMeta] = useState<PaginationMeta>({ totalCount: 0, currentPage: initialPage, totalPages: 0, limit: initialLimit, hasNext: false, hasPrev: false });
     const [error, setError] = useState<string | null>(null);
     const [limit, setLimit] = useState(initialLimit);
     const [page, setPage] = useState(initialPage);
@@ -22,12 +22,12 @@ const usePagination = <T,>(fetchFn: (page: number, limit: number) => PaginationO
 
         const result = await fetchRef.current(currentPage, currentLimit);
         if ('error' in result) {
-        setData([]);
-        setMeta({ total: 0, page: currentPage, pages: 0, limit: currentLimit });
-        setError(result.error);
+            setData([]);
+            setMeta({ totalCount: 0, currentPage, totalPages: 0, limit: currentLimit, hasNext: false, hasPrev: false });
+            setError(result.error);
         } else {
-        setData(result.data);
-        setMeta(result.meta);
+            setData(result.data);
+            setMeta(result.pagination);
         }
 
         setLoading(false);
@@ -37,26 +37,26 @@ const usePagination = <T,>(fetchFn: (page: number, limit: number) => PaginationO
         let active = true;
 
         (async () => {
-        setLoading(true);
-        setError(null);
+            setLoading(true);
+            setError(null);
 
-        const result = await fetchRef.current(page, limit);
-        if (!active) return;
+            const result = await fetchRef.current(page, limit);
+            if (!active) return;
 
-        if ('error' in result) {
-            setData([]);
-            setMeta({ total: 0, page, pages: 0, limit });
-            setError(result.error);
-        } else {
-            setData(result.data);
-            setMeta(result.meta);
-        }
+            if ('error' in result) {
+                setData([]);
+                setMeta({ totalCount: 0, currentPage: page, totalPages: 0, limit, hasNext: false, hasPrev: false });
+                setError(result.error);
+            } else {
+                setData(result.data);
+                setMeta(result.pagination);
+            }
 
-        setLoading(false);
+            setLoading(false);
         })();
 
         return () => {
-        active = false;
+            active = false;
         };
     }, [page, limit]);
 

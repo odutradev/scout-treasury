@@ -1,4 +1,4 @@
-import {  PaginationMeta } from '@utils/types/action'
+import { PaginationMeta } from '@utils/types/action'
 
 export interface UsePaginationResult<T> {
     setLimit: (limit: number) => void;
