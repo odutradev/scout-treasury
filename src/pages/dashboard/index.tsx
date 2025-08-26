@@ -4,6 +4,7 @@ import { TrendingUp, TrendingDown, AccountBalance, Schedule, Receipt } from '@mu
 
 import StatsCard from '@components/startsCard';
 import SearchContainer from '@components/searchContainer';
+import TransactionForm from '@components/transactionForm';
 import EmptyState from '@components/emptyState';
 import { Container, HeaderContainer, ListContainer, PaginationContainer } from './styles';
 
@@ -11,6 +12,7 @@ import type { DashboardProps } from './types';
 
 const Dashboard = ({}: DashboardProps) => {
   const [searchValue, setSearchValue] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(event.target.value);
@@ -21,7 +23,15 @@ const Dashboard = ({}: DashboardProps) => {
   };
 
   const handleAddClick = () => {
-    console.log('Add clicked');
+    setModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setModalOpen(false);
+  };
+
+  const handleTransactionSuccess = (_result: any) => {
+    setModalOpen(false);
   };
 
   return (
@@ -101,6 +111,12 @@ const Dashboard = ({}: DashboardProps) => {
           showLastButton
         />
       </PaginationContainer>
+
+      <TransactionForm
+        open={modalOpen}
+        onClose={handleModalClose}
+        onSuccess={handleTransactionSuccess}
+      />
     </Container>
   );
 };
