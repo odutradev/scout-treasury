@@ -1,0 +1,144 @@
+import { Box, Grid, CardContent, Typography, TextField, IconButton, Button, Pagination } from '@mui/material';
+import { Search, FilterList, Add, TrendingUp, TrendingDown, AccountBalance, Schedule } from '@mui/icons-material';
+
+import { Container, StatsCard, HeaderContainer, SearchContainer, ListContainer, PaginationContainer } from './styles';
+
+import type { DashboardProps } from './types';
+
+const Dashboard = ({}: DashboardProps) => {
+  return (
+    <Container>
+      <Grid container spacing={2} sx={{ mb: 4 }}>
+        <Grid size={{ xs: 6, sm: 3 }}>
+          <StatsCard>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Entradas
+                  </Typography>
+                  <Typography variant="h6" component="div" color="success.main">
+                    R$ 0,00
+                  </Typography>
+                </Box>
+                <TrendingUp color="success" />
+              </Box>
+            </CardContent>
+          </StatsCard>
+        </Grid>
+
+        <Grid size={{ xs: 6, sm: 3 }}>
+          <StatsCard>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Saídas
+                  </Typography>
+                  <Typography variant="h6" component="div" color="error.main">
+                    R$ 0,00
+                  </Typography>
+                </Box>
+                <TrendingDown color="error" />
+              </Box>
+            </CardContent>
+          </StatsCard>
+        </Grid>
+
+        <Grid size={{ xs: 6, sm: 3 }}>
+          <StatsCard>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Saldo
+                  </Typography>
+                  <Typography variant="h6" component="div" color="primary.main">
+                    R$ 0,00
+                  </Typography>
+                </Box>
+                <AccountBalance color="primary" />
+              </Box>
+            </CardContent>
+          </StatsCard>
+        </Grid>
+
+        <Grid size={{ xs: 6, sm: 3 }}>
+          <StatsCard>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Box display="flex" alignItems="center" justifyContent="space-between">
+                <Box>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Pendentes
+                  </Typography>
+                  <Typography variant="h6" component="div" color="warning.main">
+                    0
+                  </Typography>
+                </Box>
+                <Schedule color="warning" />
+              </Box>
+            </CardContent>
+          </StatsCard>
+        </Grid>
+      </Grid>
+
+      <HeaderContainer>
+        <Typography variant="h5" component="h1" gutterBottom>
+          Transações
+        </Typography>
+
+        <SearchContainer>
+          <TextField
+            placeholder="Pesquisar transações..."
+            variant="outlined"
+            size="small"
+            fullWidth
+            InputProps={{
+              startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
+            }}
+            sx={{ flex: 1 }}
+          />
+          <IconButton color="primary" sx={{ ml: 1 }}>
+            <FilterList />
+          </IconButton>
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            sx={{ ml: 1, minWidth: { xs: 'auto', sm: '140px' } }}
+          >
+            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+              Nova
+            </Box>
+          </Button>
+        </SearchContainer>
+      </HeaderContainer>
+
+      <ListContainer>
+        <Box 
+          display="flex" 
+          alignItems="center" 
+          justifyContent="center" 
+          minHeight="200px"
+          color="text.secondary"
+        >
+          <Typography variant="body1">
+            Nenhuma transação encontrada
+          </Typography>
+        </Box>
+      </ListContainer>
+
+      <PaginationContainer>
+        <Pagination 
+          count={1} 
+          page={1} 
+          color="primary"
+          size="small"
+          showFirstButton
+          showLastButton
+        />
+      </PaginationContainer>
+    </Container>
+  );
+};
+
+export default Dashboard;
