@@ -11,7 +11,6 @@ import Loading from '@components/loading';
 import Errors from '@components/errors';
 import { getAllTransactions, getTransactionSummary } from '@actions/transactions';
 import usePagination from '@hooks/usePagination';
-import useAction from '@hooks/useAction';
 import { Container, HeaderContainer, ListContainer, PaginationContainer } from './styles';
 
 import type { DashboardProps } from './types';

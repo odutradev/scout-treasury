@@ -85,9 +85,16 @@ export const getTransactionById = async (id: string, type: 'entry' | 'exit'): Ty
 
 export const updateTransaction = async (id: string, type: 'entry' | 'exit', data: TransactionUpdateData): TypeOrError<TransactionRecord> => {
     try {
+        const existingTransaction = await getTransactionById(id, type);
+        
+        if ('error' in existingTransaction) {
+            return existingTransaction;
+        }
+
         const collection = type === 'entry' ? 'transaction-entries' : 'transaction-exits';
         const response = await api.patch(`/kv/${collection}/update/${id}`, {
             data: {
+                ...existingTransaction.data,
                 ...data,
                 lastUpdate: new Date().toISOString()
             }
@@ -155,10 +162,22 @@ export const getTransactionSummary = async (filters?: TransactionFilters): TypeO
 
 export const markTransactionAsCompleted = async (id: string, type: 'entry' | 'exit'): TypeOrError<TransactionRecord> => {
     try {
-        return await updateTransaction(id, type, {
-            completed: true,
-            confirmationDate: new Date()
+        const existingTransaction = await getTransactionById(id, type);
+        
+        if ('error' in existingTransaction) {
+            return existingTransaction;
+        }
+
+        const collection = type === 'entry' ? 'transaction-entries' : 'transaction-exits';
+        const response = await api.patch(`/kv/${collection}/update/${id}`, {
+            data: {
+                ...existingTransaction.data,
+                completed: true,
+                confirmationDate: new Date(),
+                lastUpdate: new Date().toISOString()
+            }
         });
+        return response.data;
     } catch (error) {
         return manageActionError(error);
     }
@@ -166,10 +185,22 @@ export const markTransactionAsCompleted = async (id: string, type: 'entry' | 'ex
 
 export const markTransactionAsPending = async (id: string, type: 'entry' | 'exit'): TypeOrError<TransactionRecord> => {
     try {
-        return await updateTransaction(id, type, {
-            completed: false,
-            confirmationDate: undefined
+        const existingTransaction = await getTransactionById(id, type);
+        
+        if ('error' in existingTransaction) {
+            return existingTransaction;
+        }
+
+        const collection = type === 'entry' ? 'transaction-entries' : 'transaction-exits';
+        const response = await api.patch(`/kv/${collection}/update/${id}`, {
+            data: {
+                ...existingTransaction.data,
+                completed: false,
+                confirmationDate: undefined,
+                lastUpdate: new Date().toISOString()
+            }
         });
+        return response.data;
     } catch (error) {
         return manageActionError(error);
     }
