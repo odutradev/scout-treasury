@@ -5,7 +5,9 @@ export const Container = styled(Box)`
   padding: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 
   @media (max-width: 600px) {
     padding: 1rem;
@@ -49,12 +51,12 @@ export const SearchContainer = styled(Box)`
 
 export const ListContainer = styled(Box)`
   border-radius: 4px;
-  border: 1px solid ${({ theme }) => theme.palette?.divider || '#e0e0e0'};
   margin-bottom: 1.5rem;
-  min-height: 400px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 
   @media (max-width: 600px) {
-    min-height: 300px;
     margin-bottom: 1rem;
   }
 `;
@@ -62,5 +64,20 @@ export const ListContainer = styled(Box)`
 export const PaginationContainer = styled(Box)`
   display: flex;
   justify-content: center;
-  padding: 1rem 0;
+  padding: 1rem 0 0 0;
+  margin-top: auto;
+`;
+
+export const EmptyStateContainer = styled(Box)`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 2rem;
+  text-align: center;
+
+  @media (max-width: 600px) {
+    padding: 1.5rem;
+  }
 `;

@@ -1,7 +1,7 @@
-import { Box, Grid, CardContent, Typography, TextField, IconButton, Button, Pagination } from '@mui/material';
-import { Search, FilterList, Add, TrendingUp, TrendingDown, AccountBalance, Schedule } from '@mui/icons-material';
+import { Box, Grid, Card, CardContent, Typography, TextField, IconButton, Button, Pagination } from '@mui/material';
+import { Search, FilterList, Add, TrendingUp, TrendingDown, AccountBalance, Schedule, Receipt } from '@mui/icons-material';
 
-import { Container, StatsCard, HeaderContainer, SearchContainer, ListContainer, PaginationContainer } from './styles';
+import { Container, StatsCard, HeaderContainer, SearchContainer, ListContainer, PaginationContainer, EmptyStateContainer } from './styles';
 
 import type { DashboardProps } from './types';
 
@@ -114,17 +114,15 @@ const Dashboard = ({}: DashboardProps) => {
       </HeaderContainer>
 
       <ListContainer>
-        <Box 
-          display="flex" 
-          alignItems="center" 
-          justifyContent="center" 
-          minHeight="200px"
-          color="text.secondary"
-        >
-          <Typography variant="body1">
+        <EmptyStateContainer>
+          <Receipt sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+          <Typography variant="h6" color="text.secondary" gutterBottom>
             Nenhuma transação encontrada
           </Typography>
-        </Box>
+          <Typography variant="body2" color="text.secondary">
+            Comece adicionando sua primeira entrada ou saída
+          </Typography>
+        </EmptyStateContainer>
       </ListContainer>
 
       <PaginationContainer>
