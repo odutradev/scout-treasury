@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import { styled } from '@mui/material/styles';
 import { ListItem, Box, Chip } from '@mui/material';
 
 export const Container = styled(ListItem)`
