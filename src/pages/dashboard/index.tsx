@@ -1,11 +1,46 @@
-import { Box, Grid, CardContent, Typography, TextField, IconButton, Button, Pagination } from '@mui/material';
+import { useState } from 'react';
+import { Box, Grid, CardContent, Typography, TextField, IconButton, Button } from '@mui/material';
 import { Search, FilterList, Add, TrendingUp, TrendingDown, AccountBalance, Schedule, Receipt } from '@mui/icons-material';
 
+import Pagination from '@components/pagination';
 import { Container, StatsCard, HeaderContainer, SearchContainer, ListContainer, PaginationContainer, EmptyStateContainer } from './styles';
 
 import type { DashboardProps } from './types';
+import type { PaginationMeta } from '@utils/types/action';
 
 const Dashboard = ({}: DashboardProps) => {
+  const [paginationMeta, setPaginationMeta] = useState<PaginationMeta>({
+    totalCount: 0,
+    currentPage: 1,
+    totalPages: 1,
+    limit: 10,
+    hasNext: false,
+    hasPrev: false
+  });
+
+  const handlePageChange = (page: number) => {
+    setPaginationMeta(prev => ({
+      ...prev,
+      currentPage: page,
+      hasPrev: page > 1,
+      hasNext: page < prev.totalPages
+    }));
+  };
+
+  const handleLimitChange = (limit: number) => {
+    const totalPages = Math.ceil(paginationMeta.totalCount / limit);
+    const currentPage = Math.min(paginationMeta.currentPage, totalPages);
+    
+    setPaginationMeta(prev => ({
+      ...prev,
+      limit,
+      totalPages,
+      currentPage,
+      hasPrev: currentPage > 1,
+      hasNext: currentPage < totalPages
+    }));
+  };
+
   return (
     <Container>
       <Grid container spacing={2} sx={{ mb: 4 }}>
@@ -127,12 +162,9 @@ const Dashboard = ({}: DashboardProps) => {
 
       <PaginationContainer>
         <Pagination 
-          count={1} 
-          page={1} 
-          color="primary"
-          size="small"
-          showFirstButton
-          showLastButton
+          meta={paginationMeta}
+          onPageChange={handlePageChange}
+          onLimitChange={handleLimitChange}
         />
       </PaginationContainer>
     </Container>
