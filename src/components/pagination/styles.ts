@@ -27,7 +27,7 @@ export const StyledPagination = styled(MuiPagination)(({ theme }) => ({
   }
 }));
 
-export const RowsContainer = styled(Box)(({ theme }) => ({
+export const RowsContainer = styled(Box)(() => ({
   alignItems: 'center',
   display: 'flex'
 }));

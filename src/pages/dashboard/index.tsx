@@ -1,4 +1,4 @@
-import { Box, Grid, Card, CardContent, Typography, TextField, IconButton, Button, Pagination } from '@mui/material';
+import { Box, Grid, CardContent, Typography, TextField, IconButton, Button, Pagination } from '@mui/material';
 import { Search, FilterList, Add, TrendingUp, TrendingDown, AccountBalance, Schedule, Receipt } from '@mui/icons-material';
 
 import { Container, StatsCard, HeaderContainer, SearchContainer, ListContainer, PaginationContainer, EmptyStateContainer } from './styles';
