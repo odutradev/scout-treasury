@@ -9,13 +9,13 @@ import TransactionList from '@components/transactionList';
 import Pagination from '@components/pagination';
 import Loading from '@components/loading';
 import Errors from '@components/errors';
-import { getAllTransactionEntries, getAllTransactionExits, getTransactionSummary } from '@actions/transactions';
-import usePagination from '@hooks/usePagination';
+import { getAllTransactions, getTransactionSummary } from '@actions/transactions';
 import useAction from '@hooks/useAction';
 import { Container, HeaderContainer, ListContainer, PaginationContainer } from './styles';
 
 import type { DashboardProps } from './types';
 import type { TransactionRecord, TransactionSummary, TransactionFilters } from '@actions/transactions/types';
+import type { PaginationMeta } from '@utils/types/action';
 
 const Dashboard = ({}: DashboardProps) => {
   const [searchValue, setSearchValue] = useState('');
@@ -23,54 +23,66 @@ const Dashboard = ({}: DashboardProps) => {
   const [summary, setSummary] = useState<TransactionSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [transactions, setTransactions] = useState<TransactionRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [meta, setMeta] = useState<PaginationMeta>({
+    currentPage: 1,
+    totalPages: 1,
+    totalCount: 0,
+    limit: 10,
+    hasNext: false,
+    hasPrev: false
+  });
 
-  const fetchTransactions = async (page: number, limit: number) => {
-    const params: TransactionFilters = {
+  const loadTransactions = async (page: number = meta.currentPage, limit: number = meta.limit) => {
+    setLoading(true);
+    setError(null);
+
+    const filters: TransactionFilters = {
       page,
       limit,
-      pagination: true,
+      pagination: false,
       ...(searchValue && { title: searchValue })
     };
 
-    const [entriesResult, exitsResult] = await Promise.all([
-      getAllTransactionEntries({ ...params, limit: Math.ceil(limit / 2) }),
-      getAllTransactionExits({ ...params, limit: Math.floor(limit / 2) })
-    ]);
+    try {
+      await useAction({
+        action: () => getAllTransactions(filters),
+        callback: (result: TransactionRecord[]) => {
+          const startIndex = (page - 1) * limit;
+          const endIndex = startIndex + limit;
+          const paginatedData = result.slice(startIndex, endIndex);
+          
+          const totalCount = result.length;
+          const totalPages = Math.ceil(totalCount / limit);
 
-    if ('error' in entriesResult) return entriesResult;
-    if ('error' in exitsResult) return exitsResult;
-
-    const allTransactions = [
-      ...entriesResult.data,
-      ...exitsResult.data
-    ].sort((a, b) => new Date(b.data.createdAt).getTime() - new Date(a.data.createdAt).getTime());
-
-    const totalCount = entriesResult.pagination.totalCount + exitsResult.pagination.totalCount;
-    const totalPages = Math.ceil(totalCount / limit);
-
-    return {
-      data: allTransactions.slice(0, limit),
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalCount,
-        limit,
-        hasNext: page < totalPages,
-        hasPrev: page > 1
-      }
-    };
+          setTransactions(paginatedData);
+          setMeta({
+            currentPage: page,
+            totalPages,
+            totalCount,
+            limit,
+            hasNext: page < totalPages,
+            hasPrev: page > 1
+          });
+        },
+        onError: (error) => {
+          setTransactions([]);
+          setError(error.message);
+        },
+        toastMessages: {
+          pending: '',
+          success: '',
+          error: 'Erro ao carregar transações'
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao carregar transações:', error);
+    } finally {
+      setLoading(false);
+    }
   };
-
-  const {
-    data: transactions,
-    meta,
-    loading,
-    error,
-    page,
-    setPage,
-    setLimit,
-    refresh
-  } = usePagination<TransactionRecord>(fetchTransactions, { page: 1, limit: 10 });
 
   const loadSummary = async () => {
     try {
@@ -100,15 +112,12 @@ const Dashboard = ({}: DashboardProps) => {
 
   useEffect(() => {
     loadSummary();
+    loadTransactions(1, 10);
   }, []);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (page === 1) {
-        refresh();
-      } else {
-        setPage(1);
-      }
+      loadTransactions(1, meta.limit);
     }, 500);
 
     return () => clearTimeout(timeoutId);
@@ -132,16 +141,16 @@ const Dashboard = ({}: DashboardProps) => {
 
   const handleTransactionSuccess = () => {
     setModalOpen(false);
-    refresh();
+    loadTransactions(meta.currentPage, meta.limit);
     loadSummary();
   };
 
   const handlePageChange = (newPage: number) => {
-    setPage(newPage);
+    loadTransactions(newPage, meta.limit);
   };
 
   const handleLimitChange = (newLimit: number) => {
-    setLimit(newLimit);
+    loadTransactions(1, newLimit);
   };
 
   const formatCurrency = (value: number): string => {
@@ -228,14 +237,14 @@ const Dashboard = ({}: DashboardProps) => {
           <TransactionList
             transactions={transactions}
             onTransactionUpdate={() => {
-              refresh();
+              loadTransactions(meta.currentPage, meta.limit);
               loadSummary();
             }}
           />
         )}
       </ListContainer>
 
-      {!loading && !error && meta.totalPages > 1 && (
+      {!loading && !error && meta.totalCount > 0 && (
         <PaginationContainer>
           <Pagination
             meta={meta}
