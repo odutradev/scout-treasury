@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ListItem, ListItemText, Typography, Chip, IconButton, Menu, MenuItem, Box } from '@mui/material';
+import { ListItem, ListItemText, Typography, IconButton, Menu, MenuItem, Box } from '@mui/material';
 import { MoreVert, TrendingUp, TrendingDown, CheckCircle, Schedule } from '@mui/icons-material';
 
 import { markTransactionAsCompleted, markTransactionAsPending, deleteTransaction } from '@actions/transactions';
@@ -101,12 +101,13 @@ const TransactionItem = ({ transaction, isLast, onUpdate }: TransactionItemProps
   };
 
   return (
-    <Container divider={!isLast} disabled={loading}>
+    <Container divider={!isLast} aria-disabled={loading}>
       <ListItem
         sx={{ 
           px: { xs: 2, sm: 3 }, 
           py: { xs: 1.5, sm: 2 },
-          opacity: loading ? 0.6 : 1
+          opacity: loading ? 0.6 : 1,
+          pointerEvents: loading ? 'none' : 'auto'
         }}
       >
         <StatusIcon>
