@@ -22,18 +22,6 @@ export const HeaderContainer = styled(Box)`
   }
 `;
 
-export const SearchContainer = styled(Box)`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-
-  @media (max-width: 600px) {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-`;
-
 export const ListContainer = styled(Box)`
   border-radius: 4px;
   margin-bottom: 1.5rem;
@@ -51,18 +39,4 @@ export const PaginationContainer = styled(Box)`
   justify-content: center;
   padding: 1rem 0 0 0;
   margin-top: auto;
-`;
-
-export const EmptyStateContainer = styled(Box)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  padding: 2rem;
-  text-align: center;
-
-  @media (max-width: 600px) {
-    padding: 1.5rem;
-  }
 `;

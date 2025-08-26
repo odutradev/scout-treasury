@@ -1,12 +1,29 @@
-import { Box, Grid, Typography, TextField, IconButton, Button, Pagination } from '@mui/material';
-import { Search, FilterList, Add, TrendingUp, TrendingDown, AccountBalance, Schedule, Receipt } from '@mui/icons-material';
+import React, { useState } from 'react';
+import { Grid, Typography, Pagination } from '@mui/material';
+import { TrendingUp, TrendingDown, AccountBalance, Schedule, Receipt } from '@mui/icons-material';
 
 import StatsCard from '@components/startsCard';
-import { Container, HeaderContainer, SearchContainer, ListContainer, PaginationContainer, EmptyStateContainer } from './styles';
+import SearchContainer from '@components/searchContainer';
+import EmptyState from '@components/emptyState';
+import { Container, HeaderContainer, ListContainer, PaginationContainer } from './styles';
 
 import type { DashboardProps } from './types';
 
 const Dashboard = ({}: DashboardProps) => {
+  const [searchValue, setSearchValue] = useState('');
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(event.target.value);
+  };
+
+  const handleFilterClick = () => {
+    console.log('Filter clicked');
+  };
+
+  const handleAddClick = () => {
+    console.log('Add clicked');
+  };
+
   return (
     <Container>
       <Grid container spacing={2} sx={{ mb: 4 }}>
@@ -56,42 +73,22 @@ const Dashboard = ({}: DashboardProps) => {
           Transações
         </Typography>
 
-        <SearchContainer>
-          <TextField
-            placeholder="Pesquisar transações..."
-            variant="outlined"
-            size="small"
-            fullWidth
-            InputProps={{
-              startAdornment: <Search sx={{ color: 'text.secondary', mr: 1 }} />,
-            }}
-            sx={{ flex: 1 }}
-          />
-          <IconButton color="primary" sx={{ ml: 1 }}>
-            <FilterList />
-          </IconButton>
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            sx={{ ml: 1, minWidth: { xs: 'auto', sm: '140px' } }}
-          >
-            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-              Nova
-            </Box>
-          </Button>
-        </SearchContainer>
+        <SearchContainer
+          searchValue={searchValue}
+          onSearchChange={handleSearchChange}
+          searchPlaceholder="Pesquisar transações..."
+          onFilterClick={handleFilterClick}
+          onAddClick={handleAddClick}
+          addButtonText="Nova"
+        />
       </HeaderContainer>
 
       <ListContainer>
-        <EmptyStateContainer>
-          <Receipt sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            Nenhuma transação encontrada
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Comece adicionando sua primeira entrada ou saída
-          </Typography>
-        </EmptyStateContainer>
+        <EmptyState
+          icon={Receipt}
+          title="Nenhuma transação encontrada"
+          description="Comece adicionando sua primeira entrada ou saída"
+        />
       </ListContainer>
 
       <PaginationContainer>
