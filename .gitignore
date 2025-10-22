@@ -27,3 +27,4 @@ dist-ssr
 /src/actions/.base
 
 cypress/fixtures/private.json
+scout-treasury-merged.txt
