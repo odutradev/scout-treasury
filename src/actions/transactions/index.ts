@@ -2,7 +2,7 @@ import { manageActionError } from '@utils/functions/action';
 import api from '@utils/functions/api';
 
 import type { TypeOrError, PaginationOrError, DeletedOrError } from '@utils/types/action';
-import type { TransactionRecord, TransactionCreateData, TransactionUpdateData, TransactionSummary, TransactionFilters } from './types';
+import type { TransactionRecord, TransactionCreateData, TransactionUpdateData, TransactionSummary, TransactionFilters, MonthlyTransactionSummary, EvalOperation, CountResponse, EvalResponse } from './types';
 
 export const createTransactionEntry = async (data: TransactionCreateData): TypeOrError<TransactionRecord> => {
     try {
@@ -85,16 +85,9 @@ export const getTransactionById = async (id: string, type: 'entry' | 'exit'): Ty
 
 export const updateTransaction = async (id: string, type: 'entry' | 'exit', data: TransactionUpdateData): TypeOrError<TransactionRecord> => {
     try {
-        const existingTransaction = await getTransactionById(id, type);
-        
-        if ('error' in existingTransaction) {
-            return existingTransaction;
-        }
-
         const collection = type === 'entry' ? 'transaction-entries' : 'transaction-exits';
         const response = await api.patch(`/kv/${collection}/update/${id}`, {
             data: {
-                ...existingTransaction.data,
                 ...data,
                 lastUpdate: new Date().toISOString()
             }
@@ -110,6 +103,120 @@ export const deleteTransaction = async (id: string, type: 'entry' | 'exit'): Del
         const collection = type === 'entry' ? 'transaction-entries' : 'transaction-exits';
         const response = await api.delete(`/kv/${collection}/delete/${id}`);
         return response.data;
+    } catch (error) {
+        return manageActionError(error);
+    }
+};
+
+export const countTransactions = async (collection: 'transaction-entries' | 'transaction-exits', filters?: Record<string, any>): TypeOrError<CountResponse> => {
+    try {
+        const response = await api.get(`/kv/${collection}/count`, { params: filters });
+        return response.data;
+    } catch (error) {
+        return manageActionError(error);
+    }
+};
+
+export const evalTransactions = async (collection: 'transaction-entries' | 'transaction-exits', operation: EvalOperation): TypeOrError<EvalResponse> => {
+    try {
+        const response = await api.post(`/kv/${collection}/eval`, operation);
+        return response.data;
+    } catch (error) {
+        return manageActionError(error);
+    }
+};
+
+export const getMonthlyTransactionSummary = async (year?: number, month?: number): TypeOrError<MonthlyTransactionSummary> => {
+    try {
+        const currentDate = new Date();
+        const targetYear = year || currentDate.getFullYear();
+        const targetMonth = month || currentDate.getMonth() + 1;
+        
+        const startDate = new Date(targetYear, targetMonth - 1, 1).toISOString();
+        const endDate = new Date(targetYear, targetMonth, 0, 23, 59, 59, 999).toISOString();
+        
+        const filters = {
+            'data.completed': true,
+            createdAfter: startDate,
+            createdBefore: endDate
+        };
+
+        const [
+            totalEntriesResult,
+            totalExitsResult,
+            countEntriesResult,
+            countExitsResult,
+            pendingEntriesCountResult,
+            pendingExitsCountResult
+        ] = await Promise.all([
+            evalTransactions('transaction-entries', {
+                operation: 'sum',
+                field: 'data.amount',
+                filters
+            }),
+            evalTransactions('transaction-exits', {
+                operation: 'sum',
+                field: 'data.amount',
+                filters
+            }),
+            countTransactions('transaction-entries', filters),
+            countTransactions('transaction-exits', filters),
+            countTransactions('transaction-entries', {
+                'data.completed': false,
+                createdAfter: startDate,
+                createdBefore: endDate
+            }),
+            countTransactions('transaction-exits', {
+                'data.completed': false,
+                createdAfter: startDate,
+                createdBefore: endDate
+            })
+        ]);
+
+        if ('error' in totalEntriesResult) return totalEntriesResult;
+        if ('error' in totalExitsResult) return totalExitsResult;
+        if ('error' in countEntriesResult) return countEntriesResult;
+        if ('error' in countExitsResult) return countExitsResult;
+        if ('error' in pendingEntriesCountResult) return pendingEntriesCountResult;
+        if ('error' in pendingExitsCountResult) return pendingExitsCountResult;
+
+        const monthlyEntries = totalEntriesResult.result || 0;
+        const monthlyExits = totalExitsResult.result || 0;
+        const entriesCount = countEntriesResult.count || 0;
+        const exitsCount = countExitsResult.count || 0;
+        const pendingEntriesCount = pendingEntriesCountResult.count || 0;
+        const pendingExitsCount = pendingExitsCountResult.count || 0;
+
+        const [totalEntriesAllTimeResult, totalExitsAllTimeResult] = await Promise.all([
+            evalTransactions('transaction-entries', {
+                operation: 'sum',
+                field: 'data.amount',
+                filters: { 'data.completed': true }
+            }),
+            evalTransactions('transaction-exits', {
+                operation: 'sum',
+                field: 'data.amount',
+                filters: { 'data.completed': true }
+            })
+        ]);
+
+        if ('error' in totalEntriesAllTimeResult) return totalEntriesAllTimeResult;
+        if ('error' in totalExitsAllTimeResult) return totalExitsAllTimeResult;
+
+        const totalBalance = (totalEntriesAllTimeResult.result || 0) - (totalExitsAllTimeResult.result || 0);
+
+        return {
+            monthlyEntries,
+            monthlyExits,
+            totalBalance,
+            entriesCount,
+            exitsCount,
+            pendingEntriesCount,
+            pendingExitsCount,
+            totalPendingCount: pendingEntriesCount + pendingExitsCount,
+            month: targetMonth,
+            year: targetYear
+        };
     } catch (error) {
         return manageActionError(error);
     }
@@ -162,22 +269,10 @@ export const getTransactionSummary = async (filters?: TransactionFilters): TypeO
 
 export const markTransactionAsCompleted = async (id: string, type: 'entry' | 'exit'): TypeOrError<TransactionRecord> => {
     try {
-        const existingTransaction = await getTransactionById(id, type);
-        
-        if ('error' in existingTransaction) {
-            return existingTransaction;
-        }
-
-        const collection = type === 'entry' ? 'transaction-entries' : 'transaction-exits';
-        const response = await api.patch(`/kv/${collection}/update/${id}`, {
-            data: {
-                ...existingTransaction.data,
-                completed: true,
-                confirmationDate: new Date(),
-                lastUpdate: new Date().toISOString()
-            }
+        return await updateTransaction(id, type, {
+            completed: true,
+            confirmationDate: new Date()
         });
-        return response.data;
     } catch (error) {
         return manageActionError(error);
     }
@@ -185,22 +280,10 @@ export const markTransactionAsCompleted = async (id: string, type: 'entry' | 'ex
 
 export const markTransactionAsPending = async (id: string, type: 'entry' | 'exit'): TypeOrError<TransactionRecord> => {
     try {
-        const existingTransaction = await getTransactionById(id, type);
-        
-        if ('error' in existingTransaction) {
-            return existingTransaction;
-        }
-
-        const collection = type === 'entry' ? 'transaction-entries' : 'transaction-exits';
-        const response = await api.patch(`/kv/${collection}/update/${id}`, {
-            data: {
-                ...existingTransaction.data,
-                completed: false,
-                confirmationDate: undefined,
-                lastUpdate: new Date().toISOString()
-            }
+        return await updateTransaction(id, type, {
+            completed: false,
+            confirmationDate: undefined
         });
-        return response.data;
     } catch (error) {
         return manageActionError(error);
     }

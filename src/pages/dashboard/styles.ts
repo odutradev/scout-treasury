@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import { styled } from '@mui/material/styles';
 import { Box } from '@mui/material';
 
 export const Container = styled(Box)`
@@ -11,6 +11,20 @@ export const Container = styled(Box)`
 
   @media (max-width: 600px) {
     padding: 1rem;
+  }
+`;
+
+export const MonthIndicator = styled(Box)`
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: ${({ theme }) => theme.palette.background.paper};
+  border-radius: 8px;
+  border: 1px solid ${({ theme }) => theme.palette.divider};
+
+  @media (max-width: 600px) {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
   }
 `;
 

@@ -9,18 +9,18 @@ import TransactionList from '@components/transactionList';
 import Pagination from '@components/pagination';
 import Loading from '@components/loading';
 import Errors from '@components/errors';
-import { getAllTransactions, getTransactionSummary } from '@actions/transactions';
+import { getAllTransactions, getMonthlyTransactionSummary } from '@actions/transactions';
 import usePagination from '@hooks/usePagination';
-import { Container, HeaderContainer, ListContainer, PaginationContainer } from './styles';
+import { Container, HeaderContainer, ListContainer, PaginationContainer, MonthIndicator } from './styles';
 
 import type { DashboardProps } from './types';
-import type { TransactionRecord, TransactionSummary, TransactionFilters } from '@actions/transactions/types';
+import type {TransactionFilters, MonthlyTransactionSummary } from '@actions/transactions/types';
 
 const Dashboard = ({}: DashboardProps) => {
   const [searchValue, setSearchValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
-  const [summary, setSummary] = useState<TransactionSummary | null>(null);
+  const [summary, setSummary] = useState<MonthlyTransactionSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
 
@@ -68,12 +68,12 @@ const Dashboard = ({}: DashboardProps) => {
     refresh 
   } = usePagination(fetchTransactions, { page: 1, limit: 10 });
 
-  const loadSummary = async () => {
+  const loadMonthlySummary = async () => {
     try {
       setSummaryLoading(true);
       setSummaryError(null);
       
-      const result = await getTransactionSummary();
+      const result = await getMonthlyTransactionSummary();
       
       if ('error' in result) {
         setSummaryError(result.error);
@@ -82,15 +82,15 @@ const Dashboard = ({}: DashboardProps) => {
       
       setSummary(result);
     } catch (error) {
-      setSummaryError('Erro ao carregar resumo');
-      console.error('Erro ao carregar resumo:', error);
+      setSummaryError('Erro ao carregar resumo mensal');
+      console.error('Erro ao carregar resumo mensal:', error);
     } finally {
       setSummaryLoading(false);
     }
   };
 
   useEffect(() => {
-    loadSummary();
+    loadMonthlySummary();
   }, []);
 
   useEffect(() => {
@@ -120,12 +120,12 @@ const Dashboard = ({}: DashboardProps) => {
   const handleTransactionSuccess = () => {
     setModalOpen(false);
     refresh();
-    loadSummary();
+    loadMonthlySummary();
   };
 
   const handleTransactionUpdate = () => {
     refresh();
-    loadSummary();
+    loadMonthlySummary();
   };
 
   const formatCurrency = (value: number): string => {
@@ -133,6 +133,14 @@ const Dashboard = ({}: DashboardProps) => {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  const getMonthName = (month: number): string => {
+    const months = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    return months[month - 1];
   };
 
   if (summaryLoading) {
@@ -145,11 +153,19 @@ const Dashboard = ({}: DashboardProps) => {
 
   return (
     <Container>
+      {summary && (
+        <MonthIndicator>
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            Resumo de {getMonthName(summary.month)} {summary.year}
+          </Typography>
+        </MonthIndicator>
+      )}
+
       <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatsCard
-            title="Entradas"
-            value={formatCurrency(summary?.totalEntries || 0)}
+            title="Entradas do Mês"
+            value={formatCurrency(summary?.monthlyEntries || 0)}
             valueColor="success.main"
             icon={TrendingUp}
             iconColor="success"
@@ -158,8 +174,8 @@ const Dashboard = ({}: DashboardProps) => {
 
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatsCard
-            title="Saídas"
-            value={formatCurrency(summary?.totalExits || 0)}
+            title="Saídas do Mês"
+            value={formatCurrency(summary?.monthlyExits || 0)}
             valueColor="error.main"
             icon={TrendingDown}
             iconColor="error"
@@ -168,18 +184,18 @@ const Dashboard = ({}: DashboardProps) => {
 
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatsCard
-            title="Saldo"
-            value={formatCurrency(summary?.balance || 0)}
-            valueColor={summary && summary.balance >= 0 ? "success.main" : "error.main"}
+            title="Saldo Total"
+            value={formatCurrency(summary?.totalBalance || 0)}
+            valueColor={summary && summary.totalBalance >= 0 ? "success.main" : "error.main"}
             icon={AccountBalance}
-            iconColor={summary && summary.balance >= 0 ? "success" : "error"}
+            iconColor={summary && summary.totalBalance >= 0 ? "success" : "error"}
           />
         </Grid>
 
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatsCard
-            title="Pendentes"
-            value={String((summary?.pendingEntriesCount || 0) + (summary?.pendingExitsCount || 0))}
+            title="Pendentes do Mês"
+            value={String(summary?.totalPendingCount || 0)}
             valueColor="warning.main"
             icon={Schedule}
             iconColor="warning"

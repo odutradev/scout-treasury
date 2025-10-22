@@ -68,3 +68,32 @@ export interface TransactionSummary {
     pendingEntriesCount: number;
     pendingExitsCount: number;
 }
+
+export interface MonthlyTransactionSummary {
+    monthlyEntries: number;
+    monthlyExits: number;
+    totalBalance: number;
+    entriesCount: number;
+    exitsCount: number;
+    pendingEntriesCount: number;
+    pendingExitsCount: number;
+    totalPendingCount: number;
+    month: number;
+    year: number;
+}
+
+export interface CountResponse {
+    count: number;
+}
+
+export interface EvalResponse {
+    operation: string;
+    field: string;
+    result: number;
+}
+
+export interface EvalOperation {
+    operation: 'sum' | 'avg' | 'count' | 'min' | 'max' | 'distinct';
+    field: string;
+    filters: Record<string, any>;
+}
