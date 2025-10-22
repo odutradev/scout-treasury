@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Grid, Typography } from '@mui/material';
-import { TrendingUp, TrendingDown, AccountBalance, Schedule } from '@mui/icons-material';
+import { Grid, Typography, Box, IconButton } from '@mui/material';
+import {
+  TrendingUp,
+  TrendingDown,
+  AccountBalance,
+  Schedule,
+  ArrowBackIosNew,
+  ArrowForwardIos,
+} from '@mui/icons-material';
 
 import StatsCard from '@components/startsCard';
 import SearchContainer from '@components/searchContainer';
@@ -14,7 +21,7 @@ import usePagination from '@hooks/usePagination';
 import { Container, HeaderContainer, ListContainer, PaginationContainer, MonthIndicator } from './styles';
 
 import type { DashboardProps } from './types';
-import type {TransactionFilters, MonthlyTransactionSummary } from '@actions/transactions/types';
+import type { TransactionFilters, MonthlyTransactionSummary } from '@actions/transactions/types';
 
 const Dashboard = ({}: DashboardProps) => {
   const [searchValue, setSearchValue] = useState('');
@@ -23,63 +30,78 @@ const Dashboard = ({}: DashboardProps) => {
   const [summary, setSummary] = useState<MonthlyTransactionSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
-  const fetchTransactions = useCallback(async (page: number, limit: number) => {
-    const filters: TransactionFilters = {
-      page,
-      limit,
-      pagination: true,
-      ...(searchTerm && { title: searchTerm })
-    };
+  const fetchTransactions = useCallback(
+    async (page: number, limit: number) => {
+      const targetYear = selectedDate.getFullYear();
+      const targetMonth = selectedDate.getMonth() + 1;
 
-    const allTransactions = await getAllTransactions({ ...filters, pagination: false });
-    
-    if ('error' in allTransactions) {
-      return { error: allTransactions.error };
-    }
+      const startDate = new Date(targetYear, targetMonth - 1, 1).toISOString();
+      const endDate = new Date(targetYear, targetMonth, 0, 23, 59, 59, 999).toISOString();
 
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedData = allTransactions.slice(startIndex, endIndex);
-    
-    const totalCount = allTransactions.length;
-    const totalPages = Math.ceil(totalCount / limit);
-
-    return {
-      data: paginatedData,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalCount,
+      const filters: TransactionFilters = {
+        page,
         limit,
-        hasNext: page < totalPages,
-        hasPrev: page > 1
-      }
-    };
-  }, [searchTerm]);
+        pagination: true,
+        ...(searchTerm && { title: searchTerm }),
+        createdAfter: startDate,
+        createdBefore: endDate,
+      };
 
-  const { 
-    data: transactions, 
-    meta, 
-    loading, 
-    error, 
-    setPage, 
-    setLimit, 
-    refresh 
+      const allTransactions = await getAllTransactions({ ...filters, pagination: false });
+
+      if ('error' in allTransactions) {
+        return { error: allTransactions.error };
+      }
+
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedData = allTransactions.slice(startIndex, endIndex);
+
+      const totalCount = allTransactions.length;
+      const totalPages = Math.ceil(totalCount / limit);
+
+      return {
+        data: paginatedData,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalCount,
+          limit,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+      };
+    },
+    [searchTerm, selectedDate]
+  );
+
+  const {
+    data: transactions,
+    meta,
+    loading,
+    error,
+    setPage,
+    setLimit,
+    refresh,
   } = usePagination(fetchTransactions, { page: 1, limit: 10 });
 
-  const loadMonthlySummary = async () => {
+  const loadMonthlySummary = useCallback(async () => {
     try {
       setSummaryLoading(true);
       setSummaryError(null);
-      
-      const result = await getMonthlyTransactionSummary();
-      
+
+      const targetYear = selectedDate.getFullYear();
+      const targetMonth = selectedDate.getMonth() + 1;
+
+      const result = await getMonthlyTransactionSummary(targetYear, targetMonth);
+
       if ('error' in result) {
         setSummaryError(result.error);
         return;
       }
-      
+
       setSummary(result);
     } catch (error) {
       setSummaryError('Erro ao carregar resumo mensal');
@@ -87,11 +109,11 @@ const Dashboard = ({}: DashboardProps) => {
     } finally {
       setSummaryLoading(false);
     }
-  };
+  }, [selectedDate]);
 
   useEffect(() => {
     loadMonthlySummary();
-  }, []);
+  }, [loadMonthlySummary]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -100,6 +122,14 @@ const Dashboard = ({}: DashboardProps) => {
 
     return () => clearTimeout(timeoutId);
   }, [searchValue]);
+
+  const handlePrevMonth = () => {
+    setSelectedDate((prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setSelectedDate((prevDate) => new Date(prevDate.getFullYear(), prevDate.getMonth() + 1, 1));
+  };
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(event.target.value);
@@ -131,19 +161,19 @@ const Dashboard = ({}: DashboardProps) => {
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
-      currency: 'BRL'
+      currency: 'BRL',
     }).format(value);
   };
 
   const getMonthName = (month: number): string => {
     const months = [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
     ];
     return months[month - 1];
   };
 
-  if (summaryLoading) {
+  if (summaryLoading && !summary) {
     return <Loading message="Carregando dashboard" />;
   }
 
@@ -153,13 +183,19 @@ const Dashboard = ({}: DashboardProps) => {
 
   return (
     <Container>
-      {summary && (
-        <MonthIndicator>
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            Resumo de {getMonthName(summary.month)} {summary.year}
+      <MonthIndicator>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+          <IconButton onClick={handlePrevMonth} size="small">
+            <ArrowBackIosNew fontSize="inherit" />
+          </IconButton>
+          <Typography variant="h6" color="text.secondary" sx={{ mx: 2, minWidth: '180px', textAlign: 'center' }}>
+            Resumo de {getMonthName(selectedDate.getMonth() + 1)} {selectedDate.getFullYear()}
           </Typography>
-        </MonthIndicator>
-      )}
+          <IconButton onClick={handleNextMonth} size="small">
+            <ArrowForwardIos fontSize="inherit" />
+          </IconButton>
+        </Box>
+      </MonthIndicator>
 
       <Grid container spacing={2} sx={{ mb: 4 }}>
         <Grid size={{ xs: 6, sm: 3 }}>
@@ -186,9 +222,9 @@ const Dashboard = ({}: DashboardProps) => {
           <StatsCard
             title="Saldo Total"
             value={formatCurrency(summary?.totalBalance || 0)}
-            valueColor={summary && summary.totalBalance >= 0 ? "success.main" : "error.main"}
+            valueColor={summary && summary.totalBalance >= 0 ? 'success.main' : 'error.main'}
             icon={AccountBalance}
-            iconColor={summary && summary.totalBalance >= 0 ? "success" : "error"}
+            iconColor={summary && summary.totalBalance >= 0 ? 'success' : 'error'}
           />
         </Grid>
 

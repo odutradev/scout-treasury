@@ -49,6 +49,8 @@ export interface TransactionFilters {
     startDate?: string;
     endDate?: string;
     type?: 'entry' | 'exit';
+    createdAfter?: string;
+  createdBefore?: string;
 }
 
 export interface TransactionSummary {
