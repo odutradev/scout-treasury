@@ -135,10 +135,19 @@ export const getMonthlyTransactionSummary = async (year?: number, month?: number
         const startDate = new Date(targetYear, targetMonth - 1, 1).toISOString();
         const endDate = new Date(targetYear, targetMonth, 0, 23, 59, 59, 999).toISOString();
         
-        const filters = {
-            'data.completed': true,
+        const monthFilters = {
             createdAfter: startDate,
             createdBefore: endDate
+        };
+
+        const monthCompletedFilters = {
+            ...monthFilters,
+            'data.completed': true
+        };
+
+        const monthPendingFilters = {
+            ...monthFilters,
+            'data.completed': false
         };
 
         const [
@@ -152,25 +161,17 @@ export const getMonthlyTransactionSummary = async (year?: number, month?: number
             evalTransactions('transaction-entries', {
                 operation: 'sum',
                 field: 'data.amount',
-                filters
+                filters: monthFilters
             }),
             evalTransactions('transaction-exits', {
                 operation: 'sum',
                 field: 'data.amount',
-                filters
+                filters: monthFilters
             }),
-            countTransactions('transaction-entries', filters),
-            countTransactions('transaction-exits', filters),
-            countTransactions('transaction-entries', {
-                'data.completed': false,
-                createdAfter: startDate,
-                createdBefore: endDate
-            }),
-            countTransactions('transaction-exits', {
-                'data.completed': false,
-                createdAfter: startDate,
-                createdBefore: endDate
-            })
+            countTransactions('transaction-entries', monthCompletedFilters),
+            countTransactions('transaction-exits', monthCompletedFilters),
+            countTransactions('transaction-entries', monthPendingFilters),
+            countTransactions('transaction-exits', monthPendingFilters)
         ]);
 
         if ('error' in totalEntriesResult) return totalEntriesResult;
@@ -269,10 +270,19 @@ export const getTransactionSummary = async (filters?: TransactionFilters): TypeO
 
 export const markTransactionAsCompleted = async (id: string, type: 'entry' | 'exit'): TypeOrError<TransactionRecord> => {
     try {
-        return await updateTransaction(id, type, {
+        const transactionResult = await getTransactionById(id, type);
+        
+        if ('error' in transactionResult) {
+            return transactionResult;
+        }
+
+        const updatedData = {
+            ...transactionResult.data,
             completed: true,
             confirmationDate: new Date()
-        });
+        };
+
+        return await updateTransaction(id, type, updatedData);
     } catch (error) {
         return manageActionError(error);
     }
@@ -280,10 +290,19 @@ export const markTransactionAsCompleted = async (id: string, type: 'entry' | 'ex
 
 export const markTransactionAsPending = async (id: string, type: 'entry' | 'exit'): TypeOrError<TransactionRecord> => {
     try {
-        return await updateTransaction(id, type, {
+        const transactionResult = await getTransactionById(id, type);
+        
+        if ('error' in transactionResult) {
+            return transactionResult;
+        }
+
+        const updatedData = {
+            ...transactionResult.data,
             completed: false,
             confirmationDate: undefined
-        });
+        };
+
+        return await updateTransaction(id, type, updatedData);
     } catch (error) {
         return manageActionError(error);
     }
