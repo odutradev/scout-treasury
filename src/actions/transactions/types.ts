@@ -42,7 +42,7 @@ export interface TransactionFilters {
     limit?: number;
     pagination?: boolean;
     category?: string;
-    completed?: string;
+    completed?: boolean;
     title?: string;
     minAmount?: number;
     maxAmount?: number;
