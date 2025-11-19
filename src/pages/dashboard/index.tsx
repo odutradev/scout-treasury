@@ -7,6 +7,7 @@ import {
   Schedule,
   ArrowBackIosNew,
   ArrowForwardIos,
+  Assessment,
 } from '@mui/icons-material';
 
 import StatsCard from '@components/startsCard';
@@ -173,6 +174,8 @@ const Dashboard = ({}: DashboardProps) => {
     return months[month - 1];
   };
 
+  const monthlyBalance = (summary?.monthlyEntries || 0) - (summary?.monthlyExits || 0);
+
   if (summaryLoading && !summary) {
     return <Loading message="Carregando dashboard" />;
   }
@@ -198,7 +201,7 @@ const Dashboard = ({}: DashboardProps) => {
       </MonthIndicator>
 
       <Grid container spacing={2} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 2.4 }}>
           <StatsCard
             title="Entradas do Mês"
             value={formatCurrency(summary?.monthlyEntries || 0)}
@@ -208,7 +211,7 @@ const Dashboard = ({}: DashboardProps) => {
           />
         </Grid>
 
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 2.4 }}>
           <StatsCard
             title="Saídas do Mês"
             value={formatCurrency(summary?.monthlyExits || 0)}
@@ -218,7 +221,17 @@ const Dashboard = ({}: DashboardProps) => {
           />
         </Grid>
 
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 2.4 }}>
+          <StatsCard
+            title="Balanço do Mês"
+            value={formatCurrency(monthlyBalance)}
+            valueColor="primary.main"
+            icon={Assessment}
+            iconColor="primary"
+          />
+        </Grid>
+
+        <Grid size={{ xs: 6, sm: 2.4 }}>
           <StatsCard
             title="Saldo Total"
             value={formatCurrency(summary?.totalBalance || 0)}
@@ -228,7 +241,7 @@ const Dashboard = ({}: DashboardProps) => {
           />
         </Grid>
 
-        <Grid size={{ xs: 6, sm: 3 }}>
+        <Grid size={{ xs: 6, sm: 2.4 }}>
           <StatsCard
             title="Pendentes do Mês"
             value={String(summary?.totalPendingCount || 0)}
