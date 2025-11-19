@@ -3,6 +3,7 @@ import { ListItem, ListItemText, Typography, IconButton, Menu, MenuItem, Box } f
 import { MoreVert, TrendingUp, TrendingDown, CheckCircle, Schedule } from '@mui/icons-material';
 
 import { markTransactionAsCompleted, markTransactionAsPending, deleteTransaction } from '@actions/transactions';
+import useAuthStore from '@stores/auth';
 import useAction from '@hooks/useAction';
 import { Container, ContentContainer, AmountContainer, CategoryChip, StatusIcon } from './styles';
 
@@ -12,6 +13,7 @@ const TransactionItem = ({ transaction, isLast, onUpdate }: TransactionItemProps
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [loading, setLoading] = useState(false);
 
+  const { canEdit } = useAuthStore();
   const isEntry = transaction.data.type === 'entry';
   const isCompleted = transaction.data.completed;
 
@@ -167,28 +169,32 @@ const TransactionItem = ({ transaction, isLast, onUpdate }: TransactionItemProps
           </Box>
         </AmountContainer>
 
-        <IconButton 
-          onClick={handleMenuOpen}
-          disabled={loading}
-          size="small"
-        >
-          <MoreVert />
-        </IconButton>
+        {canEdit() && (
+          <>
+            <IconButton 
+              onClick={handleMenuOpen}
+              disabled={loading}
+              size="small"
+            >
+              <MoreVert />
+            </IconButton>
 
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-        >
-          <MenuItem onClick={handleToggleStatus}>
-            {isCompleted ? 'Marcar como Pendente' : 'Confirmar Transação'}
-          </MenuItem>
-          <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
-            Excluir
-          </MenuItem>
-        </Menu>
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            >
+              <MenuItem onClick={handleToggleStatus}>
+                {isCompleted ? 'Marcar como Pendente' : 'Confirmar Transação'}
+              </MenuItem>
+              <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
+                Excluir
+              </MenuItem>
+            </Menu>
+          </>
+        )}
       </ListItem>
     </Container>
   );
