@@ -30,7 +30,7 @@ const Pagination = ({ meta, onPageChange, onLimitChange }: PaginationProps) => {
         </Typography>
         <FormControl variant="outlined" size="small">
           <StyledSelect value={meta.limit} onChange={handleRowsChange}>
-            {[10, 15, 30, 50, 100].map((option) => (
+            {[30, 50, 100, 200].map((option) => (
               <MenuItem key={option} value={option}>
                 {option}
               </MenuItem>

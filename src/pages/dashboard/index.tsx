@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Grid, Typography, Box, IconButton } from '@mui/material';
+import { Grid, Typography, Box, IconButton, Chip } from '@mui/material';
 import {
   TrendingUp,
   TrendingDown,
@@ -8,11 +8,13 @@ import {
   ArrowBackIosNew,
   ArrowForwardIos,
   Assessment,
+  FilterList,
 } from '@mui/icons-material';
 
 import StatsCard from '@components/startsCard';
 import SearchContainer from '@components/searchContainer';
 import TransactionForm from '@components/transactionForm';
+import TransactionFilterDialog from '@components/transactionFilterDialog';
 import TransactionList from '@components/transactionList';
 import Pagination from '@components/pagination';
 import Loading from '@components/loading';
@@ -23,11 +25,14 @@ import { Container, HeaderContainer, ListContainer, PaginationContainer, MonthIn
 
 import type { DashboardProps } from './types';
 import type { TransactionFilters, MonthlyTransactionSummary } from '@actions/transactions/types';
+import type { AppliedFilters } from '@components/transactionFilterDialog/types';
 
 const Dashboard = ({}: DashboardProps) => {
   const [searchValue, setSearchValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [filterDialogOpen, setFilterDialogOpen] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({});
   const [summary, setSummary] = useState<MonthlyTransactionSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
@@ -48,6 +53,7 @@ const Dashboard = ({}: DashboardProps) => {
         ...(searchTerm && { title: searchTerm }),
         createdAfter: startDate,
         createdBefore: endDate,
+        ...appliedFilters
       };
 
       const allTransactions = await getAllTransactions({ ...filters, pagination: false });
@@ -56,11 +62,43 @@ const Dashboard = ({}: DashboardProps) => {
         return { error: allTransactions.error };
       }
 
+      let filteredTransactions = allTransactions;
+
+      if (appliedFilters.type) {
+        filteredTransactions = filteredTransactions.filter(t => t.data.type === appliedFilters.type);
+      }
+
+      if (appliedFilters.category) {
+        filteredTransactions = filteredTransactions.filter(t => t.data.category === appliedFilters.category);
+      }
+
+      if (appliedFilters.completed !== undefined) {
+        filteredTransactions = filteredTransactions.filter(t => t.data.completed === appliedFilters.completed);
+      }
+
+      if (appliedFilters.minAmount !== undefined) {
+        filteredTransactions = filteredTransactions.filter(t => t.data.amount >= appliedFilters.minAmount!);
+      }
+
+      if (appliedFilters.maxAmount !== undefined) {
+        filteredTransactions = filteredTransactions.filter(t => t.data.amount <= appliedFilters.maxAmount!);
+      }
+
+      if (appliedFilters.startDate) {
+        const filterStartDate = new Date(appliedFilters.startDate);
+        filteredTransactions = filteredTransactions.filter(t => new Date(t.data.createdAt) >= filterStartDate);
+      }
+
+      if (appliedFilters.endDate) {
+        const filterEndDate = new Date(appliedFilters.endDate + 'T23:59:59.999Z');
+        filteredTransactions = filteredTransactions.filter(t => new Date(t.data.createdAt) <= filterEndDate);
+      }
+
       const startIndex = (page - 1) * limit;
       const endIndex = startIndex + limit;
-      const paginatedData = allTransactions.slice(startIndex, endIndex);
+      const paginatedData = filteredTransactions.slice(startIndex, endIndex);
 
-      const totalCount = allTransactions.length;
+      const totalCount = filteredTransactions.length;
       const totalPages = Math.ceil(totalCount / limit);
 
       return {
@@ -75,7 +113,7 @@ const Dashboard = ({}: DashboardProps) => {
         },
       };
     },
-    [searchTerm, selectedDate]
+    [searchTerm, selectedDate, appliedFilters]
   );
 
   const {
@@ -86,7 +124,7 @@ const Dashboard = ({}: DashboardProps) => {
     setPage,
     setLimit,
     refresh,
-  } = usePagination(fetchTransactions, { page: 1, limit: 10 });
+  } = usePagination(fetchTransactions, { page: 1, limit: 30 });
 
   const loadMonthlySummary = useCallback(async () => {
     try {
@@ -137,7 +175,23 @@ const Dashboard = ({}: DashboardProps) => {
   };
 
   const handleFilterClick = () => {
-    console.log('Filter clicked');
+    setFilterDialogOpen(true);
+  };
+
+  const handleFilterDialogClose = () => {
+    setFilterDialogOpen(false);
+  };
+
+  const handleApplyFilters = (filters: AppliedFilters) => {
+    setAppliedFilters(filters);
+    setPage(1);
+  };
+
+  const handleClearFilter = (filterKey: keyof AppliedFilters) => {
+    const newFilters = { ...appliedFilters };
+    delete newFilters[filterKey];
+    setAppliedFilters(newFilters);
+    setPage(1);
   };
 
   const handleAddClick = () => {
@@ -174,6 +228,28 @@ const Dashboard = ({}: DashboardProps) => {
     return months[month - 1];
   };
 
+  const getFilterLabel = (key: keyof AppliedFilters, value: any): string => {
+    const labels: Record<string, any> = {
+      type: { entry: 'Entradas', exit: 'Saídas' },
+      completed: { true: 'Confirmadas', false: 'Pendentes' },
+      category: value,
+      minAmount: `Min: ${formatCurrency(value)}`,
+      maxAmount: `Max: ${formatCurrency(value)}`,
+      startDate: `De: ${new Date(value).toLocaleDateString('pt-BR')}`,
+      endDate: `Até: ${new Date(value).toLocaleDateString('pt-BR')}`
+    };
+
+    if (key === 'type' || key === 'completed') {
+      return labels[key][value];
+    }
+
+    return labels[key];
+  };
+
+  const getActiveFiltersCount = (): number => {
+    return Object.keys(appliedFilters).length;
+  };
+
   const monthlyBalance = (summary?.monthlyEntries || 0) - (summary?.monthlyExits || 0);
 
   const pendingTooltip = summary ? (
@@ -197,6 +273,8 @@ const Dashboard = ({}: DashboardProps) => {
   if (summaryError) {
     return <Errors title="Erro" message={summaryError} />;
   }
+
+  const activeFiltersCount = getActiveFiltersCount();
 
   return (
     <Container>
@@ -268,9 +346,34 @@ const Dashboard = ({}: DashboardProps) => {
       </Grid>
 
       <HeaderContainer>
-        <Typography variant="h5" component="h1" gutterBottom>
-          Transações
-        </Typography>
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+          <Typography variant="h5" component="h1">
+            Transações
+          </Typography>
+          {activeFiltersCount > 0 && (
+            <Chip 
+              icon={<FilterList />}
+              label={`${activeFiltersCount} filtro${activeFiltersCount > 1 ? 's' : ''} ativo${activeFiltersCount > 1 ? 's' : ''}`}
+              color="primary"
+              size="small"
+              onClick={handleFilterClick}
+            />
+          )}
+        </Box>
+
+        {activeFiltersCount > 0 && (
+          <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
+            {Object.entries(appliedFilters).map(([key, value]) => (
+              <Chip
+                key={key}
+                label={getFilterLabel(key as keyof AppliedFilters, value)}
+                onDelete={() => handleClearFilter(key as keyof AppliedFilters)}
+                size="small"
+                variant="outlined"
+              />
+            ))}
+          </Box>
+        )}
 
         <SearchContainer
           searchValue={searchValue}
@@ -310,6 +413,13 @@ const Dashboard = ({}: DashboardProps) => {
         open={modalOpen}
         onClose={handleModalClose}
         onSuccess={handleTransactionSuccess}
+      />
+
+      <TransactionFilterDialog
+        open={filterDialogOpen}
+        onClose={handleFilterDialogClose}
+        onApplyFilters={handleApplyFilters}
+        currentFilters={appliedFilters}
       />
     </Container>
   );

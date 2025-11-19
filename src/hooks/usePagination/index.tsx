@@ -5,7 +5,7 @@ import type { UsePaginationResult } from './types';
 
 const usePagination = <T,>(
   fetchFn: (page: number, limit: number) => PaginationOrError<T>, 
-  { page: initialPage = 1, limit: initialLimit = 10 }: PaginationOptions = {}
+  { page: initialPage = 1, limit: initialLimit = 30 }: PaginationOptions = {}
 ): UsePaginationResult<T> => {
   const [meta, setMeta] = useState<PaginationMeta>({ 
     totalCount: 0, 
