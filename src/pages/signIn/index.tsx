@@ -39,7 +39,7 @@ const SignIn = () => {
         </LogoContainer>
 
         <Typography variant="h4" fontWeight={700} textAlign="center">
-          João Ascalon
+          AsCaixa
         </Typography>
 
         <Typography variant="body1" color="text.secondary" textAlign="center">

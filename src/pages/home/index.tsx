@@ -34,7 +34,7 @@ const Home = () => {
         <AccountBalance sx={{ fontSize: 64, color: 'primary.main' }} />
         
         <Typography variant="h4" fontWeight={700} textAlign="center">
-          Scout Treasury
+          AsCaixa
         </Typography>
 
         <Box display="flex" flexDirection="column" alignItems="center" gap={1}>
@@ -70,7 +70,7 @@ const Home = () => {
         </ButtonContainer>
 
         <Typography variant="caption" color="text.secondary" textAlign="center">
-          Sistema de gestão financeira
+          Sistema de gestão
         </Typography>
       </Card>
     </Container>
