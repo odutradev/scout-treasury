@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import { styled } from '@mui/material/styles';
 import { Box, Card as MuiCard } from '@mui/material';
 
 export const Container = styled(Box)`

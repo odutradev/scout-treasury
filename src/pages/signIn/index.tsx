@@ -39,7 +39,7 @@ const SignIn = () => {
         </LogoContainer>
 
         <Typography variant="h4" fontWeight={700} textAlign="center">
-          Scout Treasury
+          João Ascalon
         </Typography>
 
         <Typography variant="body1" color="text.secondary" textAlign="center">
@@ -57,10 +57,6 @@ const SignIn = () => {
             PIN inválido. Tente novamente.
           </Alert>
         )}
-
-        <Typography variant="caption" color="text.secondary" textAlign="center">
-          Sistema de gestão financeira
-        </Typography>
       </Card>
     </Container>
   );

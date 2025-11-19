@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import { styled } from '@mui/material/styles';
 import { Box, keyframes } from '@mui/material';
 
 const fadeIn = keyframes`
