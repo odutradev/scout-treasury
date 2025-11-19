@@ -1,10 +1,12 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
-import ReloadHandler from "@routes/components/reloadHandler";
-import routesPaths from "@routes/routes";
+import ReloadHandler from '@routes/components/reloadHandler';
+import useAuthStore from '@stores/auth';
+import routesPaths from '@routes/routes';
 
 const Router = () => {
-  const token = localStorage.getItem("token");
+  const { auth } = useAuthStore();
+  
   return (
     <BrowserRouter>
       <ReloadHandler />
@@ -15,7 +17,7 @@ const Router = () => {
               <Route
                 key={path + itemPath}
                 path={path + itemPath}
-                element={privateRoute && token == null ? <Navigate to="/signin" /> : element}
+                element={privateRoute && !auth.isAuthenticated ? <Navigate to="/signin" /> : element}
               />
           )})
         )}

@@ -1,24 +1,33 @@
-import { Navigate } from "react-router-dom";
+import { Navigate } from 'react-router-dom';
 
-import InitialRoute from "@routes/components/initialRoute";
-import Dashboard from "@pages/dashboard";
-import NotFound from "@pages/notFound";
+import Dashboard from '@pages/dashboard';
+import NotFound from '@pages/notFound';
+import SignIn from '@pages/signin';
+import Home from '@pages/home';
 
 const routes = [
     {
-        path: "/",
+        path: '/',
         privateRoute: false,
         routes: [
-            ["*", <Navigate to="/not-found" replace/>],
+            ['*', <Navigate to="/not-found" replace/>],
             ['/not-found', <NotFound />],
-            ['', <InitialRoute />],
+            ['/signin', <SignIn />],
+            ['', <Navigate to="/signin" replace />]
         ]
     },
     {
-        path: "/dashboard",
+        path: '/home',
         privateRoute: true,
         routes: [
-            ['/general', <Dashboard />],
+            ['', <Home />]
+        ]
+    },
+    {
+        path: '/dashboard',
+        privateRoute: true,
+        routes: [
+            ['/general', <Dashboard />]
         ]
     }
 ];
