@@ -161,12 +161,12 @@ export const getMonthlyTransactionSummary = async (year?: number, month?: number
             evalTransactions('transaction-entries', {
                 operation: 'sum',
                 field: 'data.amount',
-                filters: monthFilters
+                filters: monthCompletedFilters
             }),
             evalTransactions('transaction-exits', {
                 operation: 'sum',
                 field: 'data.amount',
-                filters: monthFilters
+                filters: monthCompletedFilters
             }),
             countTransactions('transaction-entries', monthCompletedFilters),
             countTransactions('transaction-exits', monthCompletedFilters),
