@@ -78,7 +78,7 @@ const PinInput = ({ onComplete, error = false, disabled = false }: PinInputProps
           onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, e)}
           onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => handleKeyDown(index, e)}
           onPaste={handlePaste}
-          inputRef={(el: HTMLInputElement) => (inputRefs.current[index] = el)}
+          inputRef={(el) => { inputRefs.current[index] = el; }}
           inputProps={{
             maxLength: 1,
             inputMode: 'numeric',
