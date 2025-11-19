@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Grid, Typography, Box, IconButton, Chip } from '@mui/material';
+import { Grid, Typography, Box, IconButton, Chip, Button } from '@mui/material';
 import {
   TrendingUp,
   TrendingDown,
@@ -9,7 +9,9 @@ import {
   ArrowForwardIos,
   Assessment,
   FilterList,
+  Logout
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 import StatsCard from '@components/startsCard';
 import SearchContainer from '@components/searchContainer';
@@ -21,6 +23,7 @@ import Loading from '@components/loading';
 import Errors from '@components/errors';
 import { getAllTransactions, getMonthlyTransactionSummary } from '@actions/transactions';
 import usePagination from '@hooks/usePagination';
+import useAuthStore from '@stores/auth';
 import { Container, HeaderContainer, ListContainer, PaginationContainer, MonthIndicator } from './styles';
 
 import type { DashboardProps } from './types';
@@ -37,6 +40,9 @@ const Dashboard = ({}: DashboardProps) => {
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const navigate = useNavigate();
+  const { canEdit, logout } = useAuthStore();
 
   const fetchTransactions = useCallback(
     async (page: number, limit: number) => {
@@ -213,6 +219,11 @@ const Dashboard = ({}: DashboardProps) => {
     loadMonthlySummary();
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/signin');
+  };
+
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -278,6 +289,18 @@ const Dashboard = ({}: DashboardProps) => {
 
   return (
     <Container>
+      <Box display="flex" justifyContent="flex-end" mb={2}>
+        <Button
+          variant="outlined"
+          startIcon={<Logout />}
+          onClick={handleLogout}
+          color="error"
+          size="small"
+        >
+          Sair
+        </Button>
+      </Box>
+
       <MonthIndicator>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
           <IconButton onClick={handlePrevMonth} size="small">
@@ -383,6 +406,7 @@ const Dashboard = ({}: DashboardProps) => {
           onAddClick={handleAddClick}
           addButtonText="Nova"
           disabled={loading}
+          showAddButton={canEdit()}
         />
       </HeaderContainer>
 
@@ -409,11 +433,13 @@ const Dashboard = ({}: DashboardProps) => {
         </PaginationContainer>
       )}
 
-      <TransactionForm
-        open={modalOpen}
-        onClose={handleModalClose}
-        onSuccess={handleTransactionSuccess}
-      />
+      {canEdit() && (
+        <TransactionForm
+          open={modalOpen}
+          onClose={handleModalClose}
+          onSuccess={handleTransactionSuccess}
+        />
+      )}
 
       <TransactionFilterDialog
         open={filterDialogOpen}
