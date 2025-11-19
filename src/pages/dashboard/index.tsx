@@ -176,6 +176,20 @@ const Dashboard = ({}: DashboardProps) => {
 
   const monthlyBalance = (summary?.monthlyEntries || 0) - (summary?.monthlyExits || 0);
 
+  const pendingTooltip = summary ? (
+    <Box>
+      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+        Detalhes dos Pendentes:
+      </Typography>
+      <Typography variant="body2" color="success.light">
+        A receber: {formatCurrency(summary.monthlyPendingEntries)}
+      </Typography>
+      <Typography variant="body2" color="error.light">
+        A pagar: {formatCurrency(summary.monthlyPendingExits)}
+      </Typography>
+    </Box>
+  ) : null;
+
   if (summaryLoading && !summary) {
     return <Loading message="Carregando dashboard" />;
   }
@@ -248,6 +262,7 @@ const Dashboard = ({}: DashboardProps) => {
             valueColor="warning.main"
             icon={Schedule}
             iconColor="warning"
+            tooltipContent={pendingTooltip}
           />
         </Grid>
       </Grid>

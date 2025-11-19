@@ -50,7 +50,7 @@ export interface TransactionFilters {
     endDate?: string;
     type?: 'entry' | 'exit';
     createdAfter?: string;
-  createdBefore?: string;
+    createdBefore?: string;
 }
 
 export interface TransactionSummary {
@@ -74,6 +74,8 @@ export interface TransactionSummary {
 export interface MonthlyTransactionSummary {
     monthlyEntries: number;
     monthlyExits: number;
+    monthlyPendingEntries: number;
+    monthlyPendingExits: number;
     totalBalance: number;
     entriesCount: number;
     exitsCount: number;

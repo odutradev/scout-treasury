@@ -153,6 +153,8 @@ export const getMonthlyTransactionSummary = async (year?: number, month?: number
         const [
             totalEntriesResult,
             totalExitsResult,
+            totalPendingEntriesResult,
+            totalPendingExitsResult,
             countEntriesResult,
             countExitsResult,
             pendingEntriesCountResult,
@@ -168,6 +170,16 @@ export const getMonthlyTransactionSummary = async (year?: number, month?: number
                 field: 'data.amount',
                 filters: monthCompletedFilters
             }),
+            evalTransactions('transaction-entries', {
+                operation: 'sum',
+                field: 'data.amount',
+                filters: monthPendingFilters
+            }),
+            evalTransactions('transaction-exits', {
+                operation: 'sum',
+                field: 'data.amount',
+                filters: monthPendingFilters
+            }),
             countTransactions('transaction-entries', monthCompletedFilters),
             countTransactions('transaction-exits', monthCompletedFilters),
             countTransactions('transaction-entries', monthPendingFilters),
@@ -176,6 +188,8 @@ export const getMonthlyTransactionSummary = async (year?: number, month?: number
 
         if ('error' in totalEntriesResult) return totalEntriesResult;
         if ('error' in totalExitsResult) return totalExitsResult;
+        if ('error' in totalPendingEntriesResult) return totalPendingEntriesResult;
+        if ('error' in totalPendingExitsResult) return totalPendingExitsResult;
         if ('error' in countEntriesResult) return countEntriesResult;
         if ('error' in countExitsResult) return countExitsResult;
         if ('error' in pendingEntriesCountResult) return pendingEntriesCountResult;
@@ -183,6 +197,8 @@ export const getMonthlyTransactionSummary = async (year?: number, month?: number
 
         const monthlyEntries = totalEntriesResult.result || 0;
         const monthlyExits = totalExitsResult.result || 0;
+        const monthlyPendingEntries = totalPendingEntriesResult.result || 0;
+        const monthlyPendingExits = totalPendingExitsResult.result || 0;
         const entriesCount = countEntriesResult.count || 0;
         const exitsCount = countExitsResult.count || 0;
         const pendingEntriesCount = pendingEntriesCountResult.count || 0;
@@ -209,6 +225,8 @@ export const getMonthlyTransactionSummary = async (year?: number, month?: number
         return {
             monthlyEntries,
             monthlyExits,
+            monthlyPendingEntries,
+            monthlyPendingExits,
             totalBalance,
             entriesCount,
             exitsCount,
