@@ -26,11 +26,11 @@ import usePagination from '@hooks/usePagination';
 import useAuthStore from '@stores/auth';
 import { Container, HeaderContainer, ListContainer, PaginationContainer, MonthIndicator } from './styles';
 
-import type { DashboardProps } from './types';
+import type { CashManagementProps } from './types';
 import type { TransactionFilters, MonthlyTransactionSummary } from '@actions/transactions/types';
 import type { AppliedFilters } from '@components/transactionFilterDialog/types';
 
-const Dashboard = ({}: DashboardProps) => {
+const CashManagement = ({}: CashManagementProps) => {
   const [searchValue, setSearchValue] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -278,7 +278,7 @@ const Dashboard = ({}: DashboardProps) => {
   ) : null;
 
   if (summaryLoading && !summary) {
-    return <Loading message="Carregando dashboard" />;
+    return <Loading message="Carregando caixa" />;
   }
 
   if (summaryError) {
@@ -451,4 +451,4 @@ const Dashboard = ({}: DashboardProps) => {
   );
 };
 
-export default Dashboard;
+export default CashManagement;

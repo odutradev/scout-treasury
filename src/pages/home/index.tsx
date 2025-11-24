@@ -9,8 +9,8 @@ const Home = () => {
   const navigate = useNavigate();
   const { logout, isAdmin } = useAuthStore();
 
-  const handleNavigateToDashboard = () => {
-    navigate('/dashboard/general');
+  const handleNavigateCashManagement = () => {
+    navigate('/cash-management');
   };
 
   const handleLogout = () => {
@@ -51,7 +51,7 @@ const Home = () => {
             variant="contained"
             size="large"
             startIcon={isAdmin() ? <Edit /> : <Visibility />}
-            onClick={handleNavigateToDashboard}
+            onClick={handleNavigateCashManagement}
             fullWidth
           >
             Acessar Caixa
