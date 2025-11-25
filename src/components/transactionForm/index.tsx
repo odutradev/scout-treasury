@@ -78,7 +78,7 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
     }
   };
 
-  const formatDateForInput = (date: Date | null): string => {
+  const formatDateForInput = (date: Date | null | undefined): string => {
     if (!date) return '';
     const d = new Date(date);
     const year = d.getFullYear();
