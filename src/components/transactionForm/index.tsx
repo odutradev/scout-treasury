@@ -136,13 +136,15 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
     if (!isValid) return;
 
     const transactionData = {
+      ...formData,
       title: formData.title,
       amount: formData.amount,
       category: formData.category,
       completed: formData.completed,
       dueDate: formData.dueDate || undefined,
       confirmationDate: formData.completed ? formData.confirmationDate || new Date() : undefined,
-      createdAt: (formData.createdAt || new Date()).toISOString()
+      createdAt: (formData.createdAt || new Date()).toISOString(),
+      type: formData.type
     };
 
     try {
