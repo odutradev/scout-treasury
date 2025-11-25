@@ -6,12 +6,13 @@ import type { TransactionRecord, TransactionCreateData, TransactionUpdateData, T
 
 export const createTransactionEntry = async (data: TransactionCreateData): TypeOrError<TransactionRecord> => {
     try {
+        const { createdAt, ...transactionData } = data;
         const response = await api.post('/kv/transaction-entries/create', {
             data: {
-                ...data,
-                type: 'entry',
-                createdAt: data.createdAt || new Date().toISOString()
-            }
+                ...transactionData,
+                type: 'entry'
+            },
+            createdAt: createdAt || new Date().toISOString()
         });
         return response.data;
     } catch (error) {
@@ -21,12 +22,13 @@ export const createTransactionEntry = async (data: TransactionCreateData): TypeO
 
 export const createTransactionExit = async (data: TransactionCreateData): TypeOrError<TransactionRecord> => {
     try {
+        const { createdAt, ...transactionData } = data;
         const response = await api.post('/kv/transaction-exits/create', {
             data: {
-                ...data,
-                type: 'exit',
-                createdAt: data.createdAt || new Date().toISOString()
-            }
+                ...transactionData,
+                type: 'exit'
+            },
+            createdAt: createdAt || new Date().toISOString()
         });
         return response.data;
     } catch (error) {
@@ -85,12 +87,14 @@ export const getTransactionById = async (id: string, type: 'entry' | 'exit'): Ty
 
 export const updateTransaction = async (id: string, type: 'entry' | 'exit', data: TransactionUpdateData): TypeOrError<TransactionRecord> => {
     try {
+        const { createdAt, ...transactionData } = data;
         const collection = type === 'entry' ? 'transaction-entries' : 'transaction-exits';
         const response = await api.patch(`/kv/${collection}/update/${id}`, {
             data: {
-                ...data,
+                ...transactionData,
                 lastUpdate: new Date().toISOString()
-            }
+            },
+            ...(createdAt && { createdAt })
         });
         return response.data;
     } catch (error) {

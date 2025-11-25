@@ -21,11 +21,13 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
     completed: false,
     dueDate: null,
     confirmationDate: null,
-    createdAt: null
+    createdAt: new Date()
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    if (!open) return;
+
     if (transaction) {
       setFormData({
         type: transaction.data.type,
@@ -37,10 +39,29 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
         confirmationDate: transaction.data.confirmationDate ? new Date(transaction.data.confirmationDate) : null,
         createdAt: new Date(transaction.data.createdAt)
       });
-    } else if (selectedMonth) {
+    } else {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      
+      let defaultDate: Date;
+
+      if (selectedMonth) {
+        const selectedYear = selectedMonth.getFullYear();
+        const selectedMonthIndex = selectedMonth.getMonth();
+        
+        if (selectedYear === currentYear && selectedMonthIndex === currentMonth) {
+          defaultDate = now;
+        } else {
+          defaultDate = new Date(selectedYear, selectedMonthIndex, 15, 12, 0, 0);
+        }
+      } else {
+        defaultDate = now;
+      }
+
       setFormData(prev => ({
         ...prev,
-        createdAt: new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1)
+        createdAt: defaultDate
       }));
     }
   }, [transaction, selectedMonth, open]);
@@ -78,7 +99,7 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
     }
   };
 
-  const formatDateForInput = (date: Date | null | undefined): string => {
+  const formatDateForInput = (date: Date | null): string => {
     if (!date) return '';
     const d = new Date(date);
     const year = d.getFullYear();
@@ -89,7 +110,8 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
 
   const parseDateFromInput = (dateString: string): Date | null => {
     if (!dateString) return null;
-    return new Date(dateString + 'T00:00:00.000Z');
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day, 12, 0, 0);
   };
 
   const validateForm = async (): Promise<boolean> => {
@@ -120,7 +142,7 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
       completed: formData.completed,
       dueDate: formData.dueDate || undefined,
       confirmationDate: formData.completed ? formData.confirmationDate || new Date() : undefined,
-      createdAt: formData.createdAt?.toISOString()
+      createdAt: (formData.createdAt || new Date()).toISOString()
     };
 
     try {
@@ -167,7 +189,7 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
       completed: false,
       dueDate: null,
       confirmationDate: null,
-      createdAt: null
+      createdAt: new Date()
     });
     setErrors({});
     onClose();
@@ -258,7 +280,7 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
           <TextField
             label="Data de Vencimento"
             type="date"
-            value={formatDateForInput(formData.dueDate)}
+            value={formatDateForInput(formData.dueDate ?? null)}
             onChange={(e) => handleInputChange('dueDate', parseDateFromInput(e.target.value))}
             error={!!errors.dueDate}
             helperText={errors.dueDate}
@@ -282,7 +304,7 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
             <TextField
               label="Data de Confirmação"
               type="date"
-              value={formatDateForInput(formData.confirmationDate)}
+              value={formatDateForInput(formData.confirmationDate ?? null)}
               onChange={(e) => handleInputChange('confirmationDate', parseDateFromInput(e.target.value))}
               error={!!errors.confirmationDate}
               helperText={errors.confirmationDate}

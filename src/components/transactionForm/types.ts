@@ -9,7 +9,7 @@ export interface TransactionFormData {
   completed: boolean;
   dueDate: Date | null;
   confirmationDate: Date | null;
-  createdAt?: Date | null;
+  createdAt: Date | null;
 }
 
 export interface TransactionFormProps {
