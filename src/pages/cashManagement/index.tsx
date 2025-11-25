@@ -27,7 +27,7 @@ import useAuthStore from '@stores/auth';
 import { Container, HeaderContainer, ListContainer, PaginationContainer, MonthIndicator } from './styles';
 
 import type { CashManagementProps } from './types';
-import type { TransactionFilters, MonthlyTransactionSummary } from '@actions/transactions/types';
+import type { TransactionFilters, MonthlyTransactionSummary, TransactionRecord } from '@actions/transactions/types';
 import type { AppliedFilters } from '@components/transactionFilterDialog/types';
 
 const CashManagement = ({}: CashManagementProps) => {
@@ -40,6 +40,7 @@ const CashManagement = ({}: CashManagementProps) => {
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [editingTransaction, setEditingTransaction] = useState<TransactionRecord | undefined>(undefined);
 
   const navigate = useNavigate();
   const { canEdit, logout } = useAuthStore();
@@ -201,15 +202,23 @@ const CashManagement = ({}: CashManagementProps) => {
   };
 
   const handleAddClick = () => {
+    setEditingTransaction(undefined);
+    setModalOpen(true);
+  };
+
+  const handleEditTransaction = (transaction: TransactionRecord) => {
+    setEditingTransaction(transaction);
     setModalOpen(true);
   };
 
   const handleModalClose = () => {
     setModalOpen(false);
+    setEditingTransaction(undefined);
   };
 
   const handleTransactionSuccess = () => {
     setModalOpen(false);
+    setEditingTransaction(undefined);
     refresh();
     loadMonthlySummary();
   };
@@ -278,7 +287,7 @@ const CashManagement = ({}: CashManagementProps) => {
   ) : null;
 
   if (summaryLoading && !summary) {
-    return <Loading message="Carregando caixa" />;
+    return <Loading message="Carregando dashboard" />;
   }
 
   if (summaryError) {
@@ -419,6 +428,7 @@ const CashManagement = ({}: CashManagementProps) => {
           <TransactionList
             transactions={transactions}
             onTransactionUpdate={handleTransactionUpdate}
+            onTransactionEdit={handleEditTransaction}
           />
         )}
       </ListContainer>
@@ -438,6 +448,8 @@ const CashManagement = ({}: CashManagementProps) => {
           open={modalOpen}
           onClose={handleModalClose}
           onSuccess={handleTransactionSuccess}
+          transaction={editingTransaction}
+          selectedMonth={selectedDate}
         />
       )}
 

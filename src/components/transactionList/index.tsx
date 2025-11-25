@@ -6,7 +6,7 @@ import { Container } from './styles';
 
 import type { TransactionListProps } from './types';
 
-const TransactionList = ({ transactions, onTransactionUpdate }: TransactionListProps) => {
+const TransactionList = ({ transactions, onTransactionUpdate, onTransactionEdit }: TransactionListProps) => {
   if (!transactions || transactions.length === 0) {
     return (
       <Container>
@@ -27,6 +27,7 @@ const TransactionList = ({ transactions, onTransactionUpdate }: TransactionListP
             transaction={transaction}
             isLast={index === transactions.length - 1}
             onUpdate={onTransactionUpdate}
+            onEdit={onTransactionEdit}
           />
         ))}
       </List>

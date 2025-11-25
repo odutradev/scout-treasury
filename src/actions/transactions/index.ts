@@ -10,7 +10,7 @@ export const createTransactionEntry = async (data: TransactionCreateData): TypeO
             data: {
                 ...data,
                 type: 'entry',
-                createdAt: new Date().toISOString()
+                createdAt: data.createdAt || new Date().toISOString()
             }
         });
         return response.data;
@@ -25,7 +25,7 @@ export const createTransactionExit = async (data: TransactionCreateData): TypeOr
             data: {
                 ...data,
                 type: 'exit',
-                createdAt: new Date().toISOString()
+                createdAt: data.createdAt || new Date().toISOString()
             }
         });
         return response.data;

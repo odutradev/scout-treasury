@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControl, InputLabel, Select, MenuItem, FormControlLabel, Switch, Box, Typography } from '@mui/material';
 
-import { createTransactionEntry, createTransactionExit } from '@actions/transactions';
+import { createTransactionEntry, createTransactionExit, updateTransaction } from '@actions/transactions';
 import { transactionSchema } from '@utils/validations/transaction';
 import useAction from '@hooks/useAction';
 
@@ -10,7 +10,9 @@ import { FormContainer, TypeSelector, AmountField } from './styles';
 import type { TransactionFormProps, TransactionFormData } from './types';
 import type { EntryCategory, ExitCategory } from '@utils/types/models/transaction';
 
-const TransactionForm = ({ open, onClose, onSuccess }: TransactionFormProps) => {
+const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth }: TransactionFormProps) => {
+  const isEditMode = !!transaction;
+  
   const [formData, setFormData] = useState<TransactionFormData>({
     type: 'entry',
     title: '',
@@ -18,9 +20,30 @@ const TransactionForm = ({ open, onClose, onSuccess }: TransactionFormProps) => 
     category: 'mensalidades',
     completed: false,
     dueDate: null,
-    confirmationDate: null
+    confirmationDate: null,
+    createdAt: null
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (transaction) {
+      setFormData({
+        type: transaction.data.type,
+        title: transaction.data.title,
+        amount: transaction.data.amount,
+        category: transaction.data.category,
+        completed: transaction.data.completed,
+        dueDate: transaction.data.dueDate ? new Date(transaction.data.dueDate) : null,
+        confirmationDate: transaction.data.confirmationDate ? new Date(transaction.data.confirmationDate) : null,
+        createdAt: new Date(transaction.data.createdAt)
+      });
+    } else if (selectedMonth) {
+      setFormData(prev => ({
+        ...prev,
+        createdAt: new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 1)
+      }));
+    }
+  }, [transaction, selectedMonth, open]);
 
   const entryCategoriesOptions: { value: EntryCategory; label: string }[] = [
     { value: 'mensalidades', label: 'Mensalidades' },
@@ -57,7 +80,11 @@ const TransactionForm = ({ open, onClose, onSuccess }: TransactionFormProps) => 
 
   const formatDateForInput = (date: Date | null): string => {
     if (!date) return '';
-    return date.toISOString().split('T')[0];
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const parseDateFromInput = (dateString: string): Date | null => {
@@ -92,26 +119,42 @@ const TransactionForm = ({ open, onClose, onSuccess }: TransactionFormProps) => 
       category: formData.category,
       completed: formData.completed,
       dueDate: formData.dueDate || undefined,
-      confirmationDate: formData.completed ? formData.confirmationDate || new Date() : undefined
+      confirmationDate: formData.completed ? formData.confirmationDate || new Date() : undefined,
+      createdAt: formData.createdAt?.toISOString()
     };
 
     try {
-      await useAction({
-        action: () => formData.type === 'entry' 
-          ? createTransactionEntry(transactionData) 
-          : createTransactionExit(transactionData),
-        callback: (result) => {
-          handleClose();
-          if (onSuccess) onSuccess(result);
-        },
-        toastMessages: {
-          pending: 'Criando transação...',
-          success: 'Transação criada com sucesso!',
-          error: 'Erro ao criar transação'
-        }
-      });
+      if (isEditMode) {
+        await useAction({
+          action: () => updateTransaction(transaction._id, transaction.data.type, transactionData),
+          callback: (result) => {
+            handleClose();
+            if (onSuccess) onSuccess(result);
+          },
+          toastMessages: {
+            pending: 'Atualizando transação...',
+            success: 'Transação atualizada com sucesso!',
+            error: 'Erro ao atualizar transação'
+          }
+        });
+      } else {
+        await useAction({
+          action: () => formData.type === 'entry' 
+            ? createTransactionEntry(transactionData) 
+            : createTransactionExit(transactionData),
+          callback: (result) => {
+            handleClose();
+            if (onSuccess) onSuccess(result);
+          },
+          toastMessages: {
+            pending: 'Criando transação...',
+            success: 'Transação criada com sucesso!',
+            error: 'Erro ao criar transação'
+          }
+        });
+      }
     } catch (error) {
-      console.error('Erro ao criar transação:', error);
+      console.error('Erro ao processar transação:', error);
     }
   };
 
@@ -123,7 +166,8 @@ const TransactionForm = ({ open, onClose, onSuccess }: TransactionFormProps) => 
       category: 'mensalidades',
       completed: false,
       dueDate: null,
-      confirmationDate: null
+      confirmationDate: null,
+      createdAt: null
     });
     setErrors({});
     onClose();
@@ -134,29 +178,31 @@ const TransactionForm = ({ open, onClose, onSuccess }: TransactionFormProps) => 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
-        <Typography variant="h6">Nova Transação</Typography>
+        <Typography variant="h6">{isEditMode ? 'Editar Transação' : 'Nova Transação'}</Typography>
       </DialogTitle>
       
       <DialogContent>
         <FormContainer>
-          <TypeSelector>
-            <Button
-              variant={formData.type === 'entry' ? 'contained' : 'outlined'}
-              color="success"
-              onClick={() => handleTypeChange('entry')}
-              fullWidth
-            >
-              Entrada
-            </Button>
-            <Button
-              variant={formData.type === 'exit' ? 'contained' : 'outlined'}
-              color="error"
-              onClick={() => handleTypeChange('exit')}
-              fullWidth
-            >
-              Saída
-            </Button>
-          </TypeSelector>
+          {!isEditMode && (
+            <TypeSelector>
+              <Button
+                variant={formData.type === 'entry' ? 'contained' : 'outlined'}
+                color="success"
+                onClick={() => handleTypeChange('entry')}
+                fullWidth
+              >
+                Entrada
+              </Button>
+              <Button
+                variant={formData.type === 'exit' ? 'contained' : 'outlined'}
+                color="error"
+                onClick={() => handleTypeChange('exit')}
+                fullWidth
+              >
+                Saída
+              </Button>
+            </TypeSelector>
+          )}
 
           <TextField
             label="Título"
@@ -197,6 +243,17 @@ const TransactionForm = ({ open, onClose, onSuccess }: TransactionFormProps) => 
               ))}
             </Select>
           </FormControl>
+
+          <TextField
+            label="Data da Transação"
+            type="date"
+            value={formatDateForInput(formData.createdAt)}
+            onChange={(e) => handleInputChange('createdAt', parseDateFromInput(e.target.value))}
+            error={!!errors.createdAt}
+            helperText={errors.createdAt || 'Data em que a transação ocorreu'}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+          />
 
           <TextField
             label="Data de Vencimento"
@@ -245,7 +302,7 @@ const TransactionForm = ({ open, onClose, onSuccess }: TransactionFormProps) => 
           variant="contained"
           color={formData.type === 'entry' ? 'success' : 'error'}
         >
-          Criar Transação
+          {isEditMode ? 'Salvar Alterações' : 'Criar Transação'}
         </Button>
       </DialogActions>
     </Dialog>

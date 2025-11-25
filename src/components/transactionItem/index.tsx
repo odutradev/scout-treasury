@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ListItem, ListItemText, Typography, IconButton, Menu, MenuItem, Box } from '@mui/material';
-import { MoreVert, TrendingUp, TrendingDown, CheckCircle, Schedule } from '@mui/icons-material';
+import { MoreVert, TrendingUp, TrendingDown, CheckCircle, Schedule, Edit } from '@mui/icons-material';
 
 import { markTransactionAsCompleted, markTransactionAsPending, deleteTransaction } from '@actions/transactions';
 import useAuthStore from '@stores/auth';
@@ -9,7 +9,7 @@ import { Container, ContentContainer, AmountContainer, CategoryChip, StatusIcon 
 
 import type { TransactionItemProps } from './types';
 
-const TransactionItem = ({ transaction, isLast, onUpdate }: TransactionItemProps) => {
+const TransactionItem = ({ transaction, isLast, onUpdate, onEdit }: TransactionItemProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [loading, setLoading] = useState(false);
 
@@ -50,6 +50,13 @@ const TransactionItem = ({ transaction, isLast, onUpdate }: TransactionItemProps
 
   const handleMenuClose = () => {
     setAnchorEl(null);
+  };
+
+  const handleEdit = () => {
+    handleMenuClose();
+    if (onEdit) {
+      onEdit(transaction);
+    }
   };
 
   const handleToggleStatus = async () => {
@@ -186,6 +193,10 @@ const TransactionItem = ({ transaction, isLast, onUpdate }: TransactionItemProps
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
+              <MenuItem onClick={handleEdit}>
+                <Edit sx={{ mr: 1, fontSize: 18 }} />
+                Editar
+              </MenuItem>
               <MenuItem onClick={handleToggleStatus}>
                 {isCompleted ? 'Marcar como Pendente' : 'Confirmar Transação'}
               </MenuItem>

@@ -4,4 +4,5 @@ export interface TransactionItemProps {
   transaction: TransactionRecord;
   isLast: boolean;
   onUpdate: () => void;
+  onEdit?: (transaction: TransactionRecord) => void;
 }

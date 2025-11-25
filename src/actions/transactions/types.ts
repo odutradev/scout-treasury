@@ -25,6 +25,7 @@ export interface TransactionCreateData {
     completed?: boolean;
     dueDate?: Date;
     confirmationDate?: Date;
+    createdAt?: string;
 }
 
 export interface TransactionUpdateData {
@@ -35,6 +36,7 @@ export interface TransactionUpdateData {
     dueDate?: Date;
     confirmationDate?: Date;
     lastUpdate?: string;
+    createdAt?: string;
 }
 
 export interface TransactionFilters {
