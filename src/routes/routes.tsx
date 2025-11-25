@@ -1,6 +1,7 @@
 import { Navigate } from 'react-router-dom';
 
 import CashManagement from '@pages/cashManagement';
+import DataManagement from '@pages/dataManagement';
 import NotFound from '@pages/notFound';
 import SignIn from '@pages/signIn';
 import Home from '@pages/home';
@@ -21,6 +22,7 @@ const routes = [
         privateRoute: true,
         routes: [
             ['cash-management', <CashManagement />],
+            ['data-management', <DataManagement />],
             ['home', <Home />],
         ]
     }

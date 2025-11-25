@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Typography, Button, Box } from '@mui/material';
-import { AccountBalance, Logout, Visibility, Edit } from '@mui/icons-material';
+import { AccountBalance, Logout, Visibility, Edit, Storage } from '@mui/icons-material';
 
 import useAuthStore from '@stores/auth';
 import { Container, Card, ButtonContainer, RoleBadge } from './styles';
@@ -11,6 +11,10 @@ const Home = () => {
 
   const handleNavigateCashManagement = () => {
     navigate('/cash-management');
+  };
+
+  const handleNavigateDataManagement = () => {
+    navigate('/data-management');
   };
 
   const handleLogout = () => {
@@ -56,6 +60,19 @@ const Home = () => {
           >
             Acessar Caixa
           </Button>
+
+          {isAdmin() && (
+            <Button
+              variant="outlined"
+              size="large"
+              startIcon={<Storage />}
+              onClick={handleNavigateDataManagement}
+              color="primary"
+              fullWidth
+            >
+              Gerenciar Dados
+            </Button>
+          )}
 
           <Button
             variant="outlined"
