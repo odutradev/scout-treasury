@@ -14,8 +14,6 @@ export interface TransactionRecord {
 export interface TransactionData extends Omit<TransactionEntry | TransactionExit, 'category'> {
     type: 'entry' | 'exit';
     category: EntryCategory | ExitCategory;
-    createdAt: string;
-    lastUpdate?: string;
 }
 
 export interface TransactionCreateData {

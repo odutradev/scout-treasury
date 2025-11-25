@@ -24,7 +24,7 @@ const TransactionItem = ({ transaction, isLast, onUpdate, onEdit }: TransactionI
     }).format(value);
   };
 
-  const formatDate = (dateString: string): string => {
+  const formatDate = (dateString: string | Date): string => {
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-BR');
   };
@@ -144,11 +144,11 @@ const TransactionItem = ({ transaction, isLast, onUpdate, onEdit }: TransactionI
             secondary={
               <Box mt={0.5}>
                 <Typography variant="body2" color="text.secondary">
-                  Criado em: {formatDate(transaction.data.createdAt)}
+                  Criado em: {formatDate(transaction.createdAt)}
                 </Typography>
                 {transaction.data.dueDate && (
                   <Typography variant="body2" color="text.secondary">
-                    Vencimento: {formatDate(transaction.data.dueDate.toString())}
+                    Vencimento: {formatDate(transaction.data.dueDate)}
                   </Typography>
                 )}
               </Box>

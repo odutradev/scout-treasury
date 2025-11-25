@@ -6,13 +6,14 @@ import type { TransactionRecord, TransactionCreateData, TransactionUpdateData, T
 
 export const createTransactionEntry = async (data: TransactionCreateData): TypeOrError<TransactionRecord> => {
     try {
-        const { createdAt, ...transactionData } = data;
+        const createdAtValue = data.createdAt || new Date().toISOString();
         const response = await api.post('/kv/transaction-entries/create', {
             data: {
-                ...transactionData,
-                type: 'entry'
+                ...data,
+                type: 'entry',
+                createdAt: createdAtValue
             },
-            createdAt: createdAt || new Date().toISOString()
+            createdAt: createdAtValue
         });
         return response.data;
     } catch (error) {
@@ -22,13 +23,14 @@ export const createTransactionEntry = async (data: TransactionCreateData): TypeO
 
 export const createTransactionExit = async (data: TransactionCreateData): TypeOrError<TransactionRecord> => {
     try {
-        const { createdAt, ...transactionData } = data;
+        const createdAtValue = data.createdAt || new Date().toISOString();
         const response = await api.post('/kv/transaction-exits/create', {
             data: {
-                ...transactionData,
-                type: 'exit'
+                ...data,
+                type: 'exit',
+                createdAt: createdAtValue
             },
-            createdAt: createdAt || new Date().toISOString()
+            createdAt: createdAtValue
         });
         return response.data;
     } catch (error) {
@@ -67,7 +69,7 @@ export const getAllTransactions = async (params?: TransactionFilters): TypeOrErr
         const allTransactions = [
             ...entriesResult.data,
             ...exitsResult.data
-        ].sort((a, b) => new Date(b.data.createdAt).getTime() - new Date(a.data.createdAt).getTime());
+        ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
         return allTransactions;
     } catch (error) {
@@ -87,15 +89,20 @@ export const getTransactionById = async (id: string, type: 'entry' | 'exit'): Ty
 
 export const updateTransaction = async (id: string, type: 'entry' | 'exit', data: TransactionUpdateData): TypeOrError<TransactionRecord> => {
     try {
-        const { createdAt, ...transactionData } = data;
         const collection = type === 'entry' ? 'transaction-entries' : 'transaction-exits';
-        const response = await api.patch(`/kv/${collection}/update/${id}`, {
+        const updatePayload: any = {
             data: {
-                ...transactionData,
+                ...data,
                 lastUpdate: new Date().toISOString()
-            },
-            ...(createdAt && { createdAt })
-        });
+            }
+        };
+        
+        if (data.createdAt) {
+            updatePayload.createdAt = data.createdAt;
+            updatePayload.data.createdAt = data.createdAt;
+        }
+        
+        const response = await api.patch(`/kv/${collection}/update/${id}`, updatePayload);
         return response.data;
     } catch (error) {
         return manageActionError(error);

@@ -37,7 +37,7 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
         completed: transaction.data.completed,
         dueDate: transaction.data.dueDate ? new Date(transaction.data.dueDate) : null,
         confirmationDate: transaction.data.confirmationDate ? new Date(transaction.data.confirmationDate) : null,
-        createdAt: new Date(transaction.data.createdAt)
+        createdAt: new Date(transaction.createdAt)
       });
     } else {
       const now = new Date();

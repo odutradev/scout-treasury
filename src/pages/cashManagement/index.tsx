@@ -93,12 +93,12 @@ const CashManagement = ({}: CashManagementProps) => {
 
       if (appliedFilters.startDate) {
         const filterStartDate = new Date(appliedFilters.startDate);
-        filteredTransactions = filteredTransactions.filter(t => new Date(t.data.createdAt) >= filterStartDate);
+        filteredTransactions = filteredTransactions.filter(t => new Date(t.createdAt) >= filterStartDate);
       }
 
       if (appliedFilters.endDate) {
         const filterEndDate = new Date(appliedFilters.endDate + 'T23:59:59.999Z');
-        filteredTransactions = filteredTransactions.filter(t => new Date(t.data.createdAt) <= filterEndDate);
+        filteredTransactions = filteredTransactions.filter(t => new Date(t.createdAt) <= filterEndDate);
       }
 
       const startIndex = (page - 1) * limit;
