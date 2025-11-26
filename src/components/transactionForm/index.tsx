@@ -12,6 +12,7 @@ import type { EntryCategory, ExitCategory } from '@utils/types/models/transactio
 
 const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth }: TransactionFormProps) => {
   const isEditMode = !!transaction;
+  const MAX_DESCRIPTION_LENGTH = 500;
   
   const [formData, setFormData] = useState<TransactionFormData>({
     type: 'entry',
@@ -203,6 +204,8 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
   };
 
   const categoryOptions = formData.type === 'entry' ? entryCategoriesOptions : exitCategoriesOptions;
+  const remainingChars = MAX_DESCRIPTION_LENGTH - formData.description.length;
+  const isDescriptionTooLong = remainingChars < 0;
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -243,17 +246,27 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
             required
           />
 
-          <TextField
-            label="Descrição"
-            value={formData.description}
-            onChange={(e) => handleInputChange('description', e.target.value)}
-            error={!!errors.description}
-            helperText={errors.description}
-            fullWidth
-            multiline
-            rows={3}
-            placeholder="Adicione detalhes sobre a transação..."
-          />
+          <Box>
+            <TextField
+              label="Descrição"
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              error={!!errors.description || isDescriptionTooLong}
+              helperText={errors.description}
+              fullWidth
+              multiline
+              rows={3}
+              placeholder="Adicione detalhes sobre a transação..."
+            />
+            <Box display="flex" justifyContent="flex-end" mt={0.5}>
+              <Typography 
+                variant="caption" 
+                color={isDescriptionTooLong ? "error" : remainingChars < 50 ? "warning.main" : "text.secondary"}
+              >
+                {remainingChars} caracteres restantes
+              </Typography>
+            </Box>
+          </Box>
 
           <AmountField
             label="Valor"
@@ -342,6 +355,7 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
           onClick={handleSubmit} 
           variant="contained"
           color={formData.type === 'entry' ? 'success' : 'error'}
+          disabled={isDescriptionTooLong}
         >
           {isEditMode ? 'Salvar Alterações' : 'Criar Transação'}
         </Button>

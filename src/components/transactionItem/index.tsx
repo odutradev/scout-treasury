@@ -68,9 +68,7 @@ const TransactionItem = ({ transaction, isLast, onUpdate, onEdit }: TransactionI
   };
 
   const handleToggleExpand = () => {
-    if (!canEdit()) {
-      setExpanded(!expanded);
-    }
+    setExpanded(!expanded);
   };
 
   const handleToggleStatus = async () => {
@@ -146,7 +144,7 @@ const TransactionItem = ({ transaction, isLast, onUpdate, onEdit }: TransactionI
             )}
           </StatusIcon>
 
-          <ContentContainer onClick={handleToggleExpand} sx={{ cursor: !canEdit() && hasDescription ? 'pointer' : 'default' }}>
+          <ContentContainer onClick={hasDescription ? handleToggleExpand : undefined} sx={{ cursor: hasDescription ? 'pointer' : 'default' }}>
             <ListItemText
               primary={
                 <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
@@ -219,7 +217,7 @@ const TransactionItem = ({ transaction, isLast, onUpdate, onEdit }: TransactionI
                   {getTruncatedDescription(transaction.data.description!)}
                 </Typography>
               )}
-              {needsTruncation && !canEdit() && (
+              {needsTruncation && (
                 <ExpandButton
                   size="small"
                   onClick={handleToggleExpand}
