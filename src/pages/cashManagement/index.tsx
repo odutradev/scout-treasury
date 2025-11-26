@@ -9,7 +9,7 @@ import {
   ArrowForwardIos,
   Assessment,
   FilterList,
-  Logout
+  ArrowBack
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
@@ -43,7 +43,7 @@ const CashManagement = ({}: CashManagementProps) => {
   const [editingTransaction, setEditingTransaction] = useState<TransactionRecord | undefined>(undefined);
 
   const navigate = useNavigate();
-  const { canEdit, logout } = useAuthStore();
+  const { canEdit } = useAuthStore();
 
   const fetchTransactions = useCallback(
     async (page: number, limit: number) => {
@@ -228,9 +228,8 @@ const CashManagement = ({}: CashManagementProps) => {
     loadMonthlySummary();
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/signin');
+  const handleBack = () => {
+    navigate('/home');
   };
 
   const formatCurrency = (value: number): string => {
@@ -300,13 +299,11 @@ const CashManagement = ({}: CashManagementProps) => {
     <Container>
       <Box display="flex" justifyContent="flex-end" mb={2}>
         <Button
-          variant="outlined"
-          startIcon={<Logout />}
-          onClick={handleLogout}
-          color="error"
-          size="small"
+          variant="text"
+          startIcon={<ArrowBack />}
+          onClick={handleBack}
         >
-          Sair
+          Voltar
         </Button>
       </Box>
 
