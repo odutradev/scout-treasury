@@ -6,7 +6,7 @@ import type { ProjectExportData, ProjectStats, ImportResult } from './types';
 
 export const exportProject = async (format: 'json' | 'csv' = 'json'): TypeOrError<Blob> => {
     try {
-        const response = await api.get('/kv/export', {
+        const response = await api.get('/kv/project/export', {
             params: { format },
             responseType: 'blob'
         });
@@ -18,7 +18,7 @@ export const exportProject = async (format: 'json' | 'csv' = 'json'): TypeOrErro
 
 export const importProject = async (data: ProjectExportData): TypeOrError<ImportResult> => {
     try {
-        const response = await api.post('/kv/import', { data });
+        const response = await api.post('/kv/project/import', { data });
         return response.data;
     } catch (error) {
         return manageActionError(error);
@@ -27,7 +27,7 @@ export const importProject = async (data: ProjectExportData): TypeOrError<Import
 
 export const deleteProject = async (): DeletedOrError => {
     try {
-        const response = await api.delete('/kv/delete');
+        const response = await api.delete('/kv/project/delete-all');
         return response.data;
     } catch (error) {
         return manageActionError(error);
@@ -67,9 +67,18 @@ export const exportCollection = async (collection: string, format: 'json' | 'csv
     }
 };
 
+export const importCollection = async (collection: string, data: any[]): TypeOrError<{ imported: boolean; count: number }> => {
+    try {
+        const response = await api.post(`/kv/${collection}/import`, { data });
+        return response.data;
+    } catch (error) {
+        return manageActionError(error);
+    }
+};
+
 export const deleteCollection = async (collection: string): DeletedOrError => {
     try {
-        const response = await api.delete(`/kv/${collection}/delete`);
+        const response = await api.delete(`/kv/${collection}/delete-all`);
         return response.data;
     } catch (error) {
         return manageActionError(error);
