@@ -21,7 +21,8 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
     completed: false,
     dueDate: null,
     confirmationDate: null,
-    createdAt: new Date()
+    createdAt: new Date(),
+    description: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -37,7 +38,8 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
         completed: transaction.data.completed,
         dueDate: transaction.data.dueDate ? new Date(transaction.data.dueDate) : null,
         confirmationDate: transaction.data.confirmationDate ? new Date(transaction.data.confirmationDate) : null,
-        createdAt: new Date(transaction.createdAt)
+        createdAt: new Date(transaction.createdAt),
+        description: transaction.data.description || ''
       });
     } else {
       const now = new Date();
@@ -61,7 +63,8 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
 
       setFormData(prev => ({
         ...prev,
-        createdAt: defaultDate
+        createdAt: defaultDate,
+        description: ''
       }));
     }
   }, [transaction, selectedMonth, open]);
@@ -144,7 +147,8 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
       dueDate: formData.dueDate || undefined,
       confirmationDate: formData.completed ? formData.confirmationDate || new Date() : undefined,
       createdAt: (formData.createdAt || new Date()).toISOString(),
-      type: formData.type
+      type: formData.type,
+      description: formData.description || undefined
     };
 
     try {
@@ -191,7 +195,8 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
       completed: false,
       dueDate: null,
       confirmationDate: null,
-      createdAt: new Date()
+      createdAt: new Date(),
+      description: ''
     });
     setErrors({});
     onClose();
@@ -236,6 +241,18 @@ const TransactionForm = ({ open, onClose, onSuccess, transaction, selectedMonth 
             helperText={errors.title}
             fullWidth
             required
+          />
+
+          <TextField
+            label="Descrição"
+            value={formData.description}
+            onChange={(e) => handleInputChange('description', e.target.value)}
+            error={!!errors.description}
+            helperText={errors.description}
+            fullWidth
+            multiline
+            rows={3}
+            placeholder="Adicione detalhes sobre a transação..."
           />
 
           <AmountField

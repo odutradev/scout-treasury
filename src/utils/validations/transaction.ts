@@ -7,6 +7,9 @@ export const transactionSchema = yup.object({
     .required('Título é obrigatório')
     .min(3, 'Título deve ter pelo menos 3 caracteres')
     .max(100, 'Título deve ter no máximo 100 caracteres'),
+  description: yup
+    .string()
+    .max(500, 'Descrição deve ter no máximo 500 caracteres'),
   amount: yup
     .number()
     .required('Valor é obrigatório')

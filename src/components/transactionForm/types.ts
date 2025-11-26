@@ -10,6 +10,7 @@ export interface TransactionFormData {
   dueDate: Date | null;
   confirmationDate: Date | null;
   createdAt: Date | null;
+  description: string;
 }
 
 export interface TransactionFormProps {

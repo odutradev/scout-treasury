@@ -14,6 +14,7 @@ export interface TransactionRecord {
 export interface TransactionData extends Omit<TransactionEntry | TransactionExit, 'category'> {
     type: 'entry' | 'exit';
     category: EntryCategory | ExitCategory;
+    description?: string;
 }
 
 export interface TransactionCreateData {
@@ -24,6 +25,7 @@ export interface TransactionCreateData {
     dueDate?: Date;
     confirmationDate?: Date;
     createdAt?: string;
+    description?: string;
 }
 
 export interface TransactionUpdateData {
@@ -35,6 +37,7 @@ export interface TransactionUpdateData {
     confirmationDate?: Date;
     lastUpdate?: string;
     createdAt?: string;
+    description?: string;
 }
 
 export interface TransactionFilters {
