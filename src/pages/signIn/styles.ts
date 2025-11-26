@@ -1,62 +1,71 @@
 import { styled } from '@mui/material/styles';
-import { Box, keyframes } from '@mui/material';
-
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
+import { Box, TextField } from '@mui/material';
 
 export const Container = styled(Box)`
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  padding: 2rem;
-  background: ${({ theme }) => theme.palette.background.default};
-
-  @media (max-width: 600px) {
-    padding: 1rem;
-  }
-`;
-
-export const Card = styled(Box)`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-  padding: 3rem;
-  border-radius: 16px;
-  background: ${({ theme }) => theme.palette.background.paper};
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  animation: ${fadeIn} 0.5s ease-out;
-  max-width: 500px;
+  gap: 0.75rem;
   width: 100%;
+  justify-content: center;
 
   @media (max-width: 600px) {
-    padding: 2rem;
-    gap: 1.5rem;
+    gap: 0.5rem;
   }
 `;
 
-export const LogoContainer = styled(Box)`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, ${({ theme }) => theme.palette.primary.main}, ${({ theme }) => theme.palette.secondary.main});
-  box-shadow: 0 4px 12px rgba(4, 153, 200, 0.3);
+export const Input = styled(TextField)<{ error?: boolean }>`
+  width: 60px;
 
-  @media (max-width: 600px) {
-    width: 60px;
+  & .MuiInputBase-root {
     height: 60px;
   }
+
+  & input {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 0;
+    caret-color: ${({ theme }) => theme.palette.primary.main};
+  }
+
+  & .MuiOutlinedInput-root {
+    border-radius: 12px;
+    transition: all 0.2s;
+
+    &:hover fieldset {
+      border-color: ${({ theme }) => theme.palette.primary.main};
+    }
+
+    &.Mui-focused fieldset {
+      border-width: 2px;
+      border-color: ${({ theme }) => theme.palette.primary.main};
+    }
+
+    ${({ error, theme }) =>
+      error &&
+      `
+      fieldset {
+        border-color: ${theme.palette.error.main} !important;
+      }
+    `}
+  }
+
+  @media (max-width: 600px) {
+    width: 50px;
+
+    & .MuiInputBase-root {
+      height: 50px;
+    }
+
+    & input {
+      font-size: 1.25rem;
+    }
+  }
+`;
+
+export const ToggleButton = styled(Box)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.5rem;
 `;
