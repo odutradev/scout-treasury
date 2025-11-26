@@ -26,6 +26,29 @@ export const HeaderContainer = styled(Box)`
   }
 `;
 
+export const StatsPanel = styled(Box)`
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: ${({ theme }) => theme.palette.background.paper};
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+
+  @media (max-width: 600px) {
+    gap: 0.75rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+`;
+
+export const StatItem = styled(Box)`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: center;
+`;
+
 export const ActionCard = styled(MuiCard)`
   padding: 1rem;
   height: 100%;

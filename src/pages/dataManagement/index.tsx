@@ -23,24 +23,31 @@ import {
   Warning
 } from '@mui/icons-material';
 
+import Loading from '@components/loading';
+import Errors from '@components/errors';
 import {
   exportProject,
   importProject,
   deleteProject,
+  getProjectStats,
   exportCollection,
   importCollection,
   deleteCollection
 } from '@actions/dataManagement';
+import useMountOnce from '@hooks/useMountOnce';
 import useAction from '@hooks/useAction';
 
 import {
   Container,
   HeaderContainer,
+  StatsPanel,
+  StatItem,
   ActionCard,
   FileInputLabel
 } from './styles';
 
 import type { DataManagementProps, ConfirmDialogProps } from './types';
+import type { ProjectStats } from '@actions/dataManagement/types';
 
 const ConfirmDialog = ({
   open,
@@ -76,6 +83,9 @@ const ConfirmDialog = ({
 );
 
 const DataManagement = ({}: DataManagementProps) => {
+  const [stats, setStats] = useState<ProjectStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
@@ -94,6 +104,31 @@ const DataManagement = ({}: DataManagementProps) => {
   const projectFileInputRef = useRef<HTMLInputElement>(null);
   const collectionFileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  const loadStats = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await getProjectStats();
+
+      if ('error' in result) {
+        setError(result.error);
+        return;
+      }
+
+      setStats(result);
+    } catch (err) {
+      setError('Erro ao carregar estatísticas');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useMountOnce(() => {
+    loadStats();
+  });
 
   const handleExportProject = async () => {
     await useAction({
@@ -178,6 +213,7 @@ const DataManagement = ({}: DataManagementProps) => {
           throw new Error(result.error);
         }
 
+        await loadStats();
         return result;
       },
       callback: () => {
@@ -218,6 +254,7 @@ const DataManagement = ({}: DataManagementProps) => {
           throw new Error(result.error);
         }
 
+        await loadStats();
         return result;
       },
       callback: () => {
@@ -244,6 +281,7 @@ const DataManagement = ({}: DataManagementProps) => {
           throw new Error(result.error);
         }
 
+        await loadStats();
         return result;
       },
       toastMessages: {
@@ -265,6 +303,7 @@ const DataManagement = ({}: DataManagementProps) => {
           throw new Error(result.error);
         }
 
+        await loadStats();
         return result;
       },
       toastMessages: {
@@ -304,6 +343,14 @@ const DataManagement = ({}: DataManagementProps) => {
     { value: 'transaction-exits', label: 'Saídas' }
   ];
 
+  if (loading && !stats) {
+    return <Loading message="Carregando estatísticas" />;
+  }
+
+  if (error) {
+    return <Errors title="Erro" message={error} />;
+  }
+
   return (
     <Container>
       <HeaderContainer>
@@ -318,6 +365,41 @@ const DataManagement = ({}: DataManagementProps) => {
           Voltar
         </Button>
       </HeaderContainer>
+
+      <StatsPanel>
+        <StatItem>
+          <Typography variant="body2" color="text.secondary">
+            Total
+          </Typography>
+          <Typography variant="h6" fontWeight={600}>
+            {stats?.totalTransactions || 0}
+          </Typography>
+        </StatItem>
+        <StatItem>
+          <Typography variant="body2" color="text.secondary">
+            Entradas
+          </Typography>
+          <Typography variant="h6" fontWeight={600} color="success.main">
+            {stats?.totalEntries || 0}
+          </Typography>
+        </StatItem>
+        <StatItem>
+          <Typography variant="body2" color="text.secondary">
+            Saídas
+          </Typography>
+          <Typography variant="h6" fontWeight={600} color="error.main">
+            {stats?.totalExits || 0}
+          </Typography>
+        </StatItem>
+        <StatItem>
+          <Typography variant="body2" color="text.secondary">
+            Coleções
+          </Typography>
+          <Typography variant="h6" fontWeight={600}>
+            {stats?.collectionsCount || 0}
+          </Typography>
+        </StatItem>
+      </StatsPanel>
 
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, md: 6 }}>
