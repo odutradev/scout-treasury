@@ -85,10 +85,6 @@ const Home = () => {
             Sair
           </Button>
         </ButtonContainer>
-
-        <Typography variant="caption" color="text.secondary" textAlign="center">
-          Sistema de gestão
-        </Typography>
       </Card>
     </Container>
   );
