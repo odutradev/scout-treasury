@@ -1,14 +1,14 @@
 export type ExitCategory = 
 | "equipamentos" 
-| "manutencao" 
 | "transporte"
+| "atividades"
  |"materiais" 
 | "eventos" 
 
 export type EntryCategory = 
-| "mensalidades" 
 | "arrecadacao"
-| "doacoes" 
+| "devolução" 
+| "repasses" 
 | "eventos" 
 | "vendas" 
 
