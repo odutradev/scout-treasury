@@ -1,49 +1,43 @@
-import { useState, useRef, useEffect, KeyboardEvent, ChangeEvent } from 'react';
-
-import { Container, PinDigit } from './styles';
+import { useState, useRef, useEffect } from 'react';
+import { IconButton } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { Container, Input, ToggleButton } from './styles';
 
 import type { PinInputProps } from './types';
 
-const PinInput = ({ onComplete, error = false, disabled = false }: PinInputProps) => {
-  const [values, setValues] = useState<string[]>(['', '', '', '', '']);
+const PinInput = ({ onComplete, error, disabled }: PinInputProps) => {
+  const [pin, setPin] = useState<string[]>(Array(5).fill(''));
+  const [showPin, setShowPin] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
     if (error) {
-      setValues(['', '', '', '', '']);
+      setPin(Array(5).fill(''));
       inputRefs.current[0]?.focus();
     }
   }, [error]);
 
-  const handleChange = (index: number, e: ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  const handleChange = (index: number, value: string) => {
+    if (disabled) return;
     
     if (!/^\d*$/.test(value)) return;
 
-    const newValues = [...values];
-    newValues[index] = value.slice(-1);
-    setValues(newValues);
+    const newPin = [...pin];
+    newPin[index] = value.slice(-1);
+    setPin(newPin);
 
     if (value && index < 4) {
       inputRefs.current[index + 1]?.focus();
     }
 
-    if (newValues.every(v => v !== '') && newValues.join('').length === 5) {
-      onComplete(newValues.join(''));
+    if (newPin.every(digit => digit !== '') && newPin.length === 5) {
+      onComplete(newPin.join(''));
     }
   };
 
-  const handleKeyDown = (index: number, e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !values[index] && index > 0) {
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Backspace' && !pin[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
-    }
-
-    if (e.key === 'ArrowLeft' && index > 0) {
-      inputRefs.current[index - 1]?.focus();
-    }
-
-    if (e.key === 'ArrowRight' && index < 4) {
-      inputRefs.current[index + 1]?.focus();
     }
   };
 
@@ -53,43 +47,48 @@ const PinInput = ({ onComplete, error = false, disabled = false }: PinInputProps
     
     if (!/^\d+$/.test(pastedData)) return;
 
-    const newValues = [...values];
-    pastedData.split('').forEach((char, i) => {
-      if (i < 5) newValues[i] = char;
+    const newPin = [...pin];
+    pastedData.split('').forEach((digit, index) => {
+      if (index < 5) newPin[index] = digit;
     });
-    
-    setValues(newValues);
+    setPin(newPin);
 
-    const nextEmptyIndex = newValues.findIndex(v => v === '');
+    const nextEmptyIndex = newPin.findIndex(digit => digit === '');
     const focusIndex = nextEmptyIndex === -1 ? 4 : nextEmptyIndex;
     inputRefs.current[focusIndex]?.focus();
 
-    if (newValues.every(v => v !== '')) {
-      onComplete(newValues.join(''));
+    if (newPin.every(digit => digit !== '')) {
+      onComplete(newPin.join(''));
     }
   };
 
   return (
     <Container>
-      {values.map((value, index) => (
-        <PinDigit
+      {pin.map((digit, index) => (
+        <Input
           key={index}
-          value={value}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => handleChange(index, e)}
-          onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => handleKeyDown(index, e)}
+          inputRef={el => inputRefs.current[index] = el}
+          type={showPin ? 'text' : 'password'}
+          value={digit}
+          onChange={e => handleChange(index, e.target.value)}
+          onKeyDown={e => handleKeyDown(index, e)}
           onPaste={handlePaste}
-          inputRef={(el) => { inputRefs.current[index] = el; }}
-          inputProps={{
-            maxLength: 1,
-            inputMode: 'numeric',
-            pattern: '[0-9]*',
-            autoComplete: 'off'
-          }}
           disabled={disabled}
           error={error}
-          autoFocus={index === 0}
+          inputProps={{ maxLength: 1 }}
+          inputMode="numeric"
         />
       ))}
+      <ToggleButton>
+        <IconButton 
+          onClick={() => setShowPin(!showPin)}
+          disabled={disabled}
+          size="small"
+          sx={{ color: 'text.secondary' }}
+        >
+          {showPin ? <VisibilityOff /> : <Visibility />}
+        </IconButton>
+      </ToggleButton>
     </Container>
   );
 };

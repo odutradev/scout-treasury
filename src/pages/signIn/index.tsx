@@ -39,7 +39,7 @@ const PinInput = ({ onComplete, error, disabled }: PinInputProps) => {
     }
   };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Backspace' && !pin[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
@@ -71,7 +71,7 @@ const PinInput = ({ onComplete, error, disabled }: PinInputProps) => {
       {pin.map((digit, index) => (
         <Input
           key={index}
-          ref={el => inputRefs.current[index] = el}
+          inputRef={el => inputRefs.current[index] = el}
           type={showPin ? 'text' : 'password'}
           value={digit}
           onChange={e => handleChange(index, e.target.value)}
@@ -79,7 +79,7 @@ const PinInput = ({ onComplete, error, disabled }: PinInputProps) => {
           onPaste={handlePaste}
           disabled={disabled}
           error={error}
-          maxLength={1}
+          inputProps={{ maxLength: 1 }}
           inputMode="numeric"
         />
       ))}
