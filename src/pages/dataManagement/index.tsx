@@ -37,6 +37,7 @@ import {
   deleteProject,
   getProjectStats,
   exportCollection,
+  importCollection,
   deleteCollection
 } from '@actions/dataManagement';
 import useMountOnce from '@hooks/useMountOnce';
@@ -105,10 +106,10 @@ const DataManagement = ({}: DataManagementProps) => {
     action: () => {},
     severity: 'warning'
   });
-  const [exportFormat, setExportFormat] = useState<'json' | 'csv'>('json');
   const [selectedCollection, setSelectedCollection] = useState<string>('transaction-entries');
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const projectFileInputRef = useRef<HTMLInputElement>(null);
+  const collectionFileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   const loadStats = async () => {
@@ -139,19 +140,19 @@ const DataManagement = ({}: DataManagementProps) => {
   const handleExportProject = async () => {
     await useAction({
       action: async () => {
-        const result = await exportProject(exportFormat);
+        const result = await exportProject('json');
 
         if ('error' in result) {
           throw new Error(result.error);
         }
 
         const blob = new Blob([result], {
-          type: exportFormat === 'json' ? 'application/json' : 'text/csv'
+          type: 'application/json'
         });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `projeto-completo.${exportFormat}`;
+        link.download = 'projeto-completo.json';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -170,19 +171,19 @@ const DataManagement = ({}: DataManagementProps) => {
   const handleExportCollection = async () => {
     await useAction({
       action: async () => {
-        const result = await exportCollection(selectedCollection, exportFormat);
+        const result = await exportCollection(selectedCollection, 'json');
 
         if ('error' in result) {
           throw new Error(result.error);
         }
 
         const blob = new Blob([result], {
-          type: exportFormat === 'json' ? 'application/json' : 'text/csv'
+          type: 'application/json'
         });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `${selectedCollection}.${exportFormat}`;
+        link.download = `${selectedCollection}.json`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -223,14 +224,55 @@ const DataManagement = ({}: DataManagementProps) => {
         return result;
       },
       callback: () => {
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+        if (projectFileInputRef.current) {
+          projectFileInputRef.current.value = '';
         }
       },
       toastMessages: {
-        pending: 'Importando dados...',
-        success: 'Dados importados com sucesso!',
-        error: 'Erro ao importar dados'
+        pending: 'Importando projeto...',
+        success: 'Projeto importado com sucesso!',
+        error: 'Erro ao importar projeto'
+      }
+    });
+  };
+
+  const handleImportCollection = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    await useAction({
+      action: async () => {
+        const text = await file.text();
+        let data;
+
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error('Arquivo JSON inválido');
+        }
+
+        if (!Array.isArray(data)) {
+          throw new Error('O arquivo deve conter um array de objetos');
+        }
+
+        const result = await importCollection(selectedCollection, data);
+
+        if ('error' in result) {
+          throw new Error(result.error);
+        }
+
+        await loadStats();
+        return result;
+      },
+      callback: () => {
+        if (collectionFileInputRef.current) {
+          collectionFileInputRef.current.value = '';
+        }
+      },
+      toastMessages: {
+        pending: 'Importando coleção...',
+        success: 'Coleção importada com sucesso!',
+        error: 'Erro ao importar coleção'
       }
     });
   };
@@ -413,20 +455,9 @@ const DataManagement = ({}: DataManagementProps) => {
               Exportar Projeto
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Baixe todos os dados do projeto em formato JSON ou CSV
+              Baixe todos os dados do projeto em formato JSON
             </Typography>
             <Divider sx={{ my: 1 }} />
-            <FormControl fullWidth size="small" sx={{ mb: 1 }}>
-              <InputLabel>Formato</InputLabel>
-              <Select
-                value={exportFormat}
-                onChange={(e) => setExportFormat(e.target.value as 'json' | 'csv')}
-                label="Formato"
-              >
-                <MenuItem value="json">JSON</MenuItem>
-                <MenuItem value="csv">CSV</MenuItem>
-              </Select>
-            </FormControl>
             <Button
               variant="contained"
               color="success"
@@ -448,29 +479,29 @@ const DataManagement = ({}: DataManagementProps) => {
               Importar Projeto
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Importe dados de um arquivo JSON exportado anteriormente
+              Importe dados de múltiplas coleções de um arquivo JSON
             </Typography>
             <Divider sx={{ my: 1 }} />
             <Alert severity="info" sx={{ mb: 1 }}>
-              Apenas arquivos JSON são aceitos para importação
+              O arquivo deve conter um objeto com as coleções
             </Alert>
             <input
-              ref={fileInputRef}
+              ref={projectFileInputRef}
               type="file"
               accept=".json"
               onChange={handleImportProject}
               style={{ display: 'none' }}
-              id="import-file"
+              id="import-project-file"
             />
             <FileInputLabel
-              htmlFor="import-file"
+              htmlFor="import-project-file"
               style={{
                 backgroundColor: '#0499C8',
                 color: 'white'
               }}
             >
               <CloudUpload style={{ marginRight: '8px' }} />
-              Selecionar Arquivo JSON
+              Selecionar Arquivo do Projeto
             </FileInputLabel>
           </ActionCard>
         </Grid>
@@ -484,7 +515,7 @@ const DataManagement = ({}: DataManagementProps) => {
               Exportar Coleção
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Exporte apenas uma coleção específica
+              Exporte apenas uma coleção específica em formato JSON
             </Typography>
             <Divider sx={{ my: 1 }} />
             <FormControl fullWidth size="small" sx={{ mb: 1 }}>
@@ -501,17 +532,6 @@ const DataManagement = ({}: DataManagementProps) => {
                 ))}
               </Select>
             </FormControl>
-            <FormControl fullWidth size="small" sx={{ mb: 1 }}>
-              <InputLabel>Formato</InputLabel>
-              <Select
-                value={exportFormat}
-                onChange={(e) => setExportFormat(e.target.value as 'json' | 'csv')}
-                label="Formato"
-              >
-                <MenuItem value="json">JSON</MenuItem>
-                <MenuItem value="csv">CSV</MenuItem>
-              </Select>
-            </FormControl>
             <Button
               variant="contained"
               color="warning"
@@ -525,6 +545,56 @@ const DataManagement = ({}: DataManagementProps) => {
         </Grid>
 
         <Grid size={{ xs: 12, md: 6 }}>
+          <ActionCard>
+            <IconContainer sx={{ bgcolor: 'info.main', color: 'white' }}>
+              <CloudUpload fontSize="large" />
+            </IconContainer>
+            <Typography variant="h6" fontWeight={600}>
+              Importar Coleção
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Importe dados para uma coleção específica
+            </Typography>
+            <Divider sx={{ my: 1 }} />
+            <FormControl fullWidth size="small" sx={{ mb: 1 }}>
+              <InputLabel>Coleção</InputLabel>
+              <Select
+                value={selectedCollection}
+                onChange={(e) => setSelectedCollection(e.target.value)}
+                label="Coleção"
+              >
+                {collections.map((col) => (
+                  <MenuItem key={col.value} value={col.value}>
+                    {col.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Alert severity="info" sx={{ mb: 1 }}>
+              O arquivo deve conter um array de objetos
+            </Alert>
+            <input
+              ref={collectionFileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImportCollection}
+              style={{ display: 'none' }}
+              id="import-collection-file"
+            />
+            <FileInputLabel
+              htmlFor="import-collection-file"
+              style={{
+                backgroundColor: '#0288d1',
+                color: 'white'
+              }}
+            >
+              <CloudUpload style={{ marginRight: '8px' }} />
+              Selecionar Arquivo da Coleção
+            </FileInputLabel>
+          </ActionCard>
+        </Grid>
+
+        <Grid size={{ xs: 12 }}>
           <ActionCard>
             <IconContainer sx={{ bgcolor: 'error.main', color: 'white' }}>
               <DeleteForever fontSize="large" />
@@ -554,7 +624,7 @@ const DataManagement = ({}: DataManagementProps) => {
                 ))}
               </Select>
             </FormControl>
-            <Box display="flex" flexDirection="column" gap={1}>
+            <Box display="flex" gap={1}>
               <Button
                 variant="outlined"
                 color="error"
