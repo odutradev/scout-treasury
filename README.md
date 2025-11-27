@@ -66,6 +66,7 @@ A financial management system for cash flow control with income and expense tran
    VITE_CONTROL_ACCESS=your_access_key
    VITE_PRODUCTION=false
    VITE_PIN_NORMAL=your_viewer_pin
+   VITE_TITLE=your_title
    VITE_PIN_ADMIN=your_admin_pin
    ```
 
