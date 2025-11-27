@@ -2,13 +2,6 @@
 
 A financial management system for cash flow control with income and expense transactions.
 
----
-
-## 🔗 Demo
-
-Access the live project: [ascaixa.odutra.com](https://ascaixa.odutra.com/)
-
----
 
 ## 🚀 Features
 
