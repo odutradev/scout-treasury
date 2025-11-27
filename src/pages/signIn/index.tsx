@@ -7,6 +7,7 @@ import PinInput from '@components/pinInput';
 import useAuthStore from '@stores/auth';
 import { validatePin } from '@utils/constants/pins';
 import { Container, Card, LogoContainer } from './styles';
+import defaultConfig from '@assets/config/default';
 
 const SignIn = () => {
   const [error, setError] = useState(false);
@@ -39,7 +40,7 @@ const SignIn = () => {
         </LogoContainer>
 
         <Typography variant="h4" fontWeight={700} textAlign="center">
-          AsCaixa
+          {defaultConfig.title}
         </Typography>
 
         <Typography variant="body1" color="text.secondary" textAlign="center">

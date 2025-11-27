@@ -31,6 +31,7 @@ const App = () => {
 
   return (
     <ThemeProvider theme={currentTheme}>
+      <title>{defaultConfig.title}</title>
       <ToastContainer {...toastContainerConfig} {...toastExtra} />
         <GlobalStyles />
         <CssBaseline />

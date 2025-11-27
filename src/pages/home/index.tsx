@@ -4,6 +4,7 @@ import { AccountBalance, Logout, Visibility, Edit, Storage } from '@mui/icons-ma
 
 import useAuthStore from '@stores/auth';
 import { Container, Card, ButtonContainer, RoleBadge } from './styles';
+import defaultConfig from '@assets/config/default';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -38,7 +39,7 @@ const Home = () => {
         <AccountBalance sx={{ fontSize: 64, color: 'primary.main' }} />
         
         <Typography variant="h4" fontWeight={700} textAlign="center">
-          AsCaixa
+          {defaultConfig.title}
         </Typography>
 
         <Box display="flex" flexDirection="column" alignItems="center" gap={1}>
